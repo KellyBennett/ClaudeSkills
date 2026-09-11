@@ -2,7 +2,7 @@
 
 Claude drops the essay and talks like a co-worker across a table — a few sentences per turn, plain English, no code, then it hands the conversation back to you. For when you need to understand something rather than receive it.
 
-Start one with `/over-coffee:coffee`, or just ask Claude to walk you through something.
+Start one with `/coffee`.
 
 Anything you send marked `ooc:` is out of character — real instruction rather than conversation. Claude absorbs it and carries on talking. Use it to hand over context it wouldn't have, to steer how it's talking, or to end the conversation and get the work done.
 

@@ -24,4 +24,4 @@ claude plugin marketplace remove kbennett-skills
 
 Claude drops the essay and talks like a co-worker across a table. For when you need to understand something rather than receive it.
 
-Start one with `/over-coffee:coffee`, or just ask Claude to walk you through something. Anything you send marked `ooc:` is real instruction rather than conversation — context, steering, or `ooc: go implement that` to close the scene. Details in the [plugin README](plugins/over-coffee/README.md).
+Start one with `/coffee`. Anything you send marked `ooc:` is real instruction rather than conversation — context, steering, or `ooc: go implement that` to close the scene. Details in the [plugin README](plugins/over-coffee/README.md).
