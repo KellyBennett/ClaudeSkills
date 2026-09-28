@@ -1,15 +1,17 @@
 ---
 name: squint-review
-description: Squint-test the code in a PR or branch and refactor it to patterns in small green steps, the way Joshua Kerievsky's Refactoring to Patterns lays out. Use when the user asks to refactor a PR or branch to patterns, run a squint test, or hunt code smells and fix them with named refactorings.
+description: Squint-test the code a PR or branch changes and review it for smells and the refactorings, from Joshua Kerievsky's Refactoring to Patterns, that would cure them. Use when the user asks to review a PR or branch for code smells, duplication, or design, to run a squint test, or to refactor a PR or branch to patterns.
 ---
 
 # Squint review
 
-Work like a careful human with all afternoon: find the smells, name them, and remove them one named refactoring at a time, with the tests green after every step. Refactoring changes structure only. Behavior stays exactly as it is.
+Review like a careful human with all afternoon: find the smells, name them, and say which named refactoring would remove each one and what that buys.
+
+A review is **read-only**. Read the code where it already is and change nothing: no checkout, no worktree, no test run. Refactoring is a separate mode, entered only when the user asks for it.
 
 ## The five questions
 
-Ask these of every class in scope, while squinting and again at the end:
+Ask these of every unit in scope (class, module, file), while squinting and again at the end:
 
 1. Does this code duplicate any behavior?
 2. Does everything have just one responsibility?
@@ -19,80 +21,52 @@ Ask these of every class in scope, while squinting and again at the end:
 
 ## Steps
 
-### 1. Set up the worktree
+### 1. Read the target
 
-- PR number or URL: `gh pr view <pr> --json number,headRefName,headRefOid,baseRefName,isCrossRepository`, fetch the head branch, and `git worktree add ../<repo>-squint-<branch> <headRefName>`.
-- Branch: the same, with that branch against the default branch.
-- Nothing given: work in place on the current branch.
+- PR number or URL: `gh pr view <pr> --json number,url,headRefName,headRefOid,baseRefName`, `gh pr diff <pr>`, and one line of `gh pr checks <pr>` for context.
+- Branch: diff `<default-branch>...<branch>`.
+- Nothing given: the current branch against the default branch.
 
-If git refuses because the branch is checked out elsewhere, stop and tell the user. The **scope** is the production files the branch changes relative to its base. Tests are touched only to keep them compiling or to add characterization tests.
+Read whole files at the head revision with `git show <rev>:<path>`, fetching the PR head first if it is not local. The **scope** is every file the branch changes: production code, tests, and configuration alike. A failing check is context for the report, never a reason to stop.
 
-Done when you are in the worktree and have the list of files in scope.
+Done when you have the diff and the full head-revision text of every file in scope.
 
-### 2. Go green
+### 2. Squint
 
-Find the project's test command from its manifests, scripts, or `CLAUDE.md`.
+Look at the code as a shape, not as text, at two distances.
 
-When the target is a PR, the worktree's `HEAD` is its `headRefOid`, and every check in `gh pr checks` passed, CI has already shown the suite green: skip the local run. Otherwise run the tests covering the scope. A red suite ends the review: report the failures and stop.
+- **Each file**: changes in shape (indentation drifting right, nesting, long methods) are where the conditionals live. Changes in color (runs of different syntax clustered together) mark mixed levels of abstraction.
+- **The whole diff**: the same shape repeating across files is Duplicated Code, and the same edit repeated across hunks is Shotgun Surgery. The fact that this PR had to change many places for one reason is the smell.
 
-For each file in scope, judge whether its tests pin the behavior you are likely to move. Where they do not, plan **characterization tests** that record what the code does now, right or wrong.
+Then read closely where the squint pointed, and ask the five questions of each unit. Record every smell by its standard name, with `path:line` and what it costs in concrete terms: the next change it makes harder.
 
-Done when the suite is known green and every file in scope is either covered or has characterization tests planned.
+Done when every file in scope and the diff as a whole have been squinted at, and every unit has answers to the five questions.
 
-### 3. Squint
+### 3. Recommend
 
-Read each file in scope as a shape, not as text.
+Turn the smells into an ordered list of recommended refactorings, choosing each from [smells-to-patterns.md](smells-to-patterns.md).
 
-- **Changes in shape**: indentation drifting right, nesting, long methods. Shape is where the conditionals live.
-- **Changes in color**: runs of different syntax clustered together (literals beside calls beside operators). Color marks mixed levels of abstraction.
+- Small cleanups that make a pattern visible (Compose Method, Extract Method) come before the pattern refactorings. Within each group, highest cost first.
+- Name each refactoring's prerequisites among the earlier ones.
+- Say for each whether it goes **to** the pattern, **toward** it, or **away** from it. Toward a pattern stops once the smell's cost is gone. Away from one is for a pattern the code does not earn (Speculative Generality).
+- List the smells not worth acting on in this PR, each with the reason.
 
-Then read closely where the squint pointed, and ask the five questions of each class. Record every smell by its standard name (Fowler's or Kerievsky's), with `path:line` and what it costs in concrete terms: the next change it makes harder.
+Done when every recorded smell is either a recommendation or listed with its reason.
 
-Done when every file in scope has been squinted at and every class has answers to the five questions.
-
-### 4. Plan
-
-Turn the smells into an ordered list of refactorings. Choose each one from [smells-to-patterns.md](smells-to-patterns.md).
-
-- Characterization tests come first, then the small cleanups that make a pattern visible (Compose Method, Extract Method), then the pattern refactorings. Within each group, highest cost first.
-- Name each refactoring's prerequisites among the earlier ones. Dropping a prerequisite drops or re-plans what depends on it.
-- Say for each one whether you refactor **to** the pattern, **toward** it, or **away** from it. Stop toward a pattern once the smell's cost is gone. Go away from one that the code does not earn (Speculative Generality).
-- List the smells you are deliberately deferring, each with the reason.
+### 4. Present
 
 Ask the user whether they want the full report or to go through it one at a time.
 
-- **Full report**: show the plan (smell, location, cost, refactoring, direction, prerequisites) and wait for them to approve or trim it.
-- **One at a time**: load the `over-coffee:coffee` skill and walk the plan in order, one refactoring per turn: the smell, what it costs, the refactoring you would reach for, and what it depends on. The user keeps, defers, or drops each one. Finish with the deferred smells, briefly, so any can be pulled back in. The refactorings they keep are the approved plan, and the walk ends when they send you off to do the work.
+- **Full report**: each recommendation with its smell, location, cost, refactoring, direction, and prerequisites. Then the smells not worth acting on, and one line on CI.
+- **One at a time**: load the `over-coffee:coffee` skill and walk the recommendations in order, one per turn: the smell, what it costs, the refactoring you would reach for, and what it depends on. The user keeps, softens, or drops each one. Finish with the smells not worth acting on, briefly, so any can be pulled back in.
 
-Done when the user approves a plan.
+Done when the user has seen every recommendation and the list reflects what they kept.
 
-### 5. Refactor
+### 5. Deliver
 
-When step 2 trusted CI, run the tests covering the first refactoring before any edit. Red here means the local environment cannot run the tests: stop and report it.
+Offer the next moves the target allows:
 
-For each approved refactoring, in order:
+- For a PR: post the kept recommendations as a review, following [post-comments.md](post-comments.md), only after the user approves the comment text.
+- Refactor them: follow [refactor.md](refactor.md), only when the user asks for it.
 
-1. Announce it: the smell, the location, the refactoring, and the direction.
-2. Follow the book's mechanics as a series of small steps. Run the tests after each step.
-3. Green: take the next step. Red: undo that step and take a smaller one. If the refactoring cannot stay green, reset to the last commit, mark it abandoned with the reason, and move on.
-4. Commit once the refactoring is complete and green. One refactoring per commit, in this shape:
-
-   ```
-   <Refactoring name> in <class or method>
-
-   <What changed structurally, in a sentence or two.>
-
-   Smells addressed:
-   - <Smell>: <what it cost>. Cured with <refactoring>.
-   ```
-
-Keep new smells found along the way for the report, and leave them unfixed: the approved plan is the whole job.
-
-Done when every approved refactoring is committed or abandoned with a reason.
-
-### 6. Report
-
-- Each refactoring with its smell, direction, and commit SHA, plus any abandoned ones and why.
-- The five questions answered again for each class you touched, naming any compromise to SOLID that remains.
-- Deferred smells and the new ones found while refactoring.
-- The worktree path, the command to push from it, and `git worktree remove <path>` for when they are done. Pushing is the user's call.
+When the user asked to refactor from the start, the kept recommendations are the plan: go straight to [refactor.md](refactor.md).

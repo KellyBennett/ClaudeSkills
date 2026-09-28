@@ -19,7 +19,7 @@
     {
       "name": "squint-review",
       "source": "./plugins/squint-review",
-      "description": "Squint-test a PR or branch and refactor it to patterns in small green steps, calling out each smell and refactoring as it goes.",
+      "description": "Squint-test a PR or branch and review it for smells and the pattern refactorings that would cure them, with an opt-in mode that carries them out.",
       "category": "development"
     }
   ]
