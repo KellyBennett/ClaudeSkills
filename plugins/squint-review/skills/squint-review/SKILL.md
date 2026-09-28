@@ -76,7 +76,7 @@ Then talk it over at the table: the smell, what it costs, the change you would a
 
 Each turn hands the conversation back the coffee way. When the user's view lands, or they say to move on, confirm it with a dialog: **Talk it over** first, then **Put it in the review**, **Mention it as optional**, **Leave it out**. When the user asked to refactor from the start, the decisions are **Refactor it** and **Leave it**. Talk it over picks the conversation back up.
 
-Finish with the smells not worth acting on, briefly, and a multi-select dialog for pulling any back in.
+After the last recommendation, give CI one line, then ask one dialog: "There are <n> smells I'd leave alone. Want to go through them?" with **Skip them** first and **Go through them** second. Going through them is the same walk, one smell per turn with its header, shorter, each ending on a dialog: **Leave it alone**, then **Put it in the review** (**Refactor it** when the user asked to refactor from the start).
 
 ### 5. Deliver
 
