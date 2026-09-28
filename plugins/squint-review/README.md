@@ -10,6 +10,6 @@ Reviews a PR or branch the way a careful human with plenty of time would. Claude
 1. It reads the change where it is. The review checks nothing out, runs nothing, and changes nothing.
 2. It squints at every changed file, tests and config included, and at the diff as a whole, where duplication across files shows up.
 3. You choose the full report, or one recommendation at a time talked through over coffee. Installing squint-review installs [over-coffee](../over-coffee/README.md) for this.
-4. For a PR, it offers to post what you kept as a review comment, after you approve the text.
+4. For a PR, it offers to post the ones you chose as a review, after you approve the text.
 
 Ask it to refactor and it checks out the branch and carries out the recommendations instead, one named refactoring per commit with tests green throughout. Pushing stays with you.
