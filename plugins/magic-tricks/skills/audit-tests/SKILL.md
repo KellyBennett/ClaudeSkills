@@ -22,7 +22,7 @@ A unit test watches one **subject** from the outside. Every message the test tou
 
 ### 1. Resolve the target
 
-- PR number or URL: `gh pr view <pr> --json number,baseRefName,headRefName,url`, then `git fetch origin pull/<n>/head` and diff `origin/<base>...FETCH_HEAD`.
+- PR number or URL: `gh pr view <pr> --json number,baseRefName,headRefName,headRefOid,url`, then `git fetch origin pull/<n>/head` and diff `origin/<base>...FETCH_HEAD`.
 - Branch: diff `<default-branch>...<branch>`.
 - Nothing given: the current branch against the default branch.
 
@@ -51,12 +51,14 @@ A test with no single subject, such as an integration, system, or end-to-end tes
 
 Done when every in-scope test case has a verdict: clean, violations listed, or out of scope.
 
-### 4. Report
+### 4. Present
 
-Group by file. For each test case give `path:line`, the test name, and the verdict. For each violation give the message, its cell, what the test does, and the fix, stated as the assertion or stub it should use instead. End with one line of totals.
+Turn the violations into findings, in the order you would fix them, highest cost first. Violations with the same cause and the same fix are one finding that names every test it covers. Each finding's full-report fields are the tests with `path:line`, the message, its cell, what the tests do, and the fix, stated as the assertion or stub to use instead.
 
-List clean tests by name only, so the report shows every in-scope test was examined.
+Load the `over-coffee:present-findings` skill and hand it the findings. The set-asides are the clean tests by name, the out-of-scope tests, and anything worth knowing that sits outside the grid, with one line of totals.
 
-### 5. Offer PR comments
+Done when it hands back the chosen findings.
 
-When the target is a PR and there are violations, offer to post them as inline review comments. Post only after the user approves, following [post-comments.md](post-comments.md).
+### 5. Deliver
+
+When the target is a PR and findings were chosen, offer in one `AskUserQuestion` dialog to post them as a review, with **Done** as the last option. Post only after the user approves the comment text, following [post-comments.md](post-comments.md).

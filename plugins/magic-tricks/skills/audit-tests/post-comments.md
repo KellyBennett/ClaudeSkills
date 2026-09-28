@@ -1,6 +1,6 @@
 # Posting findings as PR review comments
 
-Post every violation in one review, so the author gets one notification:
+Post every chosen finding in one review, so the author gets one notification:
 
 ```
 gh api repos/{owner}/{repo}/pulls/<n>/reviews --method POST --input review.json
@@ -19,6 +19,8 @@ gh api repos/{owner}/{repo}/pulls/<n>/reviews --method POST --input review.json
 }
 ```
 
+- Open an optional finding's comment with `Optional:`.
+- A finding covering several tests anchors on the first and names the others.
 - `event` stays `COMMENT`. Approving or requesting changes is the user's call.
-- `line` must be a line in the PR diff on the head side. A violation on an unchanged line goes in the review `body` instead.
+- `line` must be a line in the PR diff on the head side. A finding on an unchanged line goes in the review `body` instead.
 - Write `review.json` to the scratchpad directory, and show the user the comment bodies before sending.
