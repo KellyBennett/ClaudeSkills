@@ -51,13 +51,15 @@ Turn the smells into an ordered list of recommended refactorings, choosing each 
 - Say for each whether it goes **to** the pattern, **toward** it, or **away** from it. Toward a pattern stops once the smell's cost is gone. Away from one is for a pattern the code does not earn (Speculative Generality).
 - List the smells not worth acting on in this PR, each with the reason.
 
+The list is your working notes. The user first sees it in step 4, in the form they choose.
+
 Done when every recorded smell is either a recommendation or listed with its reason.
 
 ### 4. Present
 
-Ask the user whether they want the full report or to go through it one at a time.
+Your first message after reading is the question alone, in about these words: "I've read the code. Do you want everything at once, or one at a time, starting with what I'd fix first?"
 
-- **Full report**: each recommendation with its smell, location, cost, refactoring, direction, and prerequisites. Then the smells not worth acting on, and one line on CI.
+- **Everything at once**: each recommendation with its smell, location, cost, refactoring, direction, and prerequisites. Then the smells not worth acting on, and one line on CI.
 - **One at a time**: load the `over-coffee:coffee` skill and walk the recommendations in order, one per turn: the smell, what it costs, the refactoring you would reach for, and what it depends on. The user keeps, softens, or drops each one. Finish with the smells not worth acting on, briefly, so any can be pulled back in.
 
 Done when the user has seen every recommendation and the list reflects what they kept.
