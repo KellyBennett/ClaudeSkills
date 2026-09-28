@@ -56,7 +56,10 @@ Turn the smells into an ordered list of refactorings. Choose each one from [smel
 - Say for each one whether you refactor **to** the pattern, **toward** it, or **away** from it. Stop toward a pattern once the smell's cost is gone. Go away from one that the code does not earn (Speculative Generality).
 - List the smells you are deliberately deferring, each with the reason.
 
-Show the user the plan: smell, location, cost, refactoring, direction. Wait for them to approve or trim it.
+Ask the user whether they want the full report or to go through it one at a time.
+
+- **Full report**: show the plan (smell, location, cost, refactoring, direction) and wait for them to approve or trim it.
+- **One at a time**: load the `over-coffee:coffee` skill and walk the plan in order, one refactoring per turn: the smell, what it costs, and the refactoring you would reach for. The user keeps, defers, or drops each one. The refactorings they keep are the approved plan, and the walk ends when they send you off to do the work.
 
 Done when the user approves a plan.
 
