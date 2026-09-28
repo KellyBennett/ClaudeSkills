@@ -1,11 +1,14 @@
 {
   "name": "squint-review",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Squint-test a PR or branch and refactor it to patterns in small green steps, calling out each smell and refactoring as it goes.",
   "author": {
     "name": "Kelly Bennett"
   },
   "skills": [
     "./skills/"
+  ],
+  "dependencies": [
+    "over-coffee"
   ]
 }
