@@ -9,6 +9,12 @@
       "source": "./plugins/over-coffee",
       "description": "Talk through code or a decision the way two co-workers talk over coffee — short spoken turns, plain English, no code on the table.",
       "category": "productivity"
+    },
+    {
+      "name": "magic-tricks",
+      "source": "./plugins/magic-tricks",
+      "description": "Audit the tests in a PR or branch against Sandi Metz's Magic Tricks of Testing grid.",
+      "category": "development"
     }
   ]
 }
