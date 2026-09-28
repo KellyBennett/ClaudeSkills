@@ -1,6 +1,6 @@
 {
   "name": "squint-review",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Squint-test a PR or branch and review it for smells and the pattern refactorings that would cure them, with an opt-in mode that carries them out.",
   "author": {
     "name": "Kelly Bennett"

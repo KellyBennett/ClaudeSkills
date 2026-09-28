@@ -1,6 +1,6 @@
 # Refactor mode
 
-Carry out the kept recommendations one named refactoring at a time, with the tests green after every step. Refactoring changes structure only. Behavior stays exactly as it is.
+Carry out the chosen recommendations one named refactoring at a time, with the tests green after every step. Refactoring changes structure only. Behavior stays exactly as it is.
 
 ## 1. Check out the branch
 
@@ -24,7 +24,7 @@ Done when the tests are green and every file the plan touches is covered.
 
 ## 3. Refactor
 
-For each kept recommendation, in order:
+For each chosen recommendation, in order:
 
 1. Announce it: the smell, the location, the refactoring, and the direction.
 2. Follow the book's mechanics as a series of small steps. Run the tests after each step.
@@ -42,7 +42,7 @@ For each kept recommendation, in order:
 
 Keep new smells found along the way for the report, and leave them unfixed: the plan is the whole job.
 
-Done when every kept recommendation is committed or abandoned with a reason.
+Done when every chosen recommendation is committed or abandoned with a reason.
 
 ## 4. Report
 

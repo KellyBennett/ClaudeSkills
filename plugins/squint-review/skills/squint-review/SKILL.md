@@ -57,18 +57,22 @@ Done when every recorded smell is either a recommendation or listed with its rea
 
 ### 4. Present
 
-Your first message after reading is the question alone, in about these words: "I've read the code. Do you want everything at once, or one at a time, starting with what I'd fix first?"
+Every choice the user makes in steps 4 and 5 is an `AskUserQuestion` dialog, so they pick with Enter. Its built-in "Other" is where they type when they want to talk one through.
+
+Your first message after reading is that dialog alone: "I've read the code. Do you want everything at once, or one at a time, starting with what I'd fix first?" with the options **Everything at once** and **One at a time**.
 
 - **Everything at once**: each recommendation with its smell, location, cost, refactoring, direction, and prerequisites. Then the smells not worth acting on, and one line on CI.
-- **One at a time**: load the `over-coffee:coffee` skill and walk the recommendations in order, one per turn: the smell, what it costs, the refactoring you would reach for, and what it depends on. The user keeps, softens, or drops each one. Finish with the smells not worth acting on, briefly, so any can be pulled back in.
+- **One at a time**: load the `over-coffee:coffee` skill and walk the recommendations in order, one per turn: the smell, what it costs, the refactoring you would reach for, and what it depends on. End each turn with a dialog whose options name what happens to that recommendation: **Put it in the review**, **Mention it as optional**, **Leave it out**. When the user asked to refactor from the start, the options are **Refactor it** and **Leave it**. Finish with the smells not worth acting on, briefly, and a multi-select dialog for pulling any back in.
 
-Done when the user has seen every recommendation and the list reflects what they kept.
+The **chosen** recommendations are every one the user did not leave out.
+
+Done when the user has seen every recommendation and made a choice for each.
 
 ### 5. Deliver
 
-Offer the next moves the target allows:
+Offer the next moves the target allows in one dialog, with **Done** as the last option:
 
-- For a PR: post the kept recommendations as a review, following [post-comments.md](post-comments.md), only after the user approves the comment text.
+- For a PR: post the chosen recommendations as a review, following [post-comments.md](post-comments.md), only after the user approves the comment text.
 - Refactor them: follow [refactor.md](refactor.md), only when the user asks for it.
 
-When the user asked to refactor from the start, the kept recommendations are the plan: go straight to [refactor.md](refactor.md).
+When the user asked to refactor from the start, the chosen recommendations are the plan: go straight to [refactor.md](refactor.md).
