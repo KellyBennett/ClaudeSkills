@@ -15,3 +15,5 @@ ooc: good, go implement that
 That last one is the exit — coffee deliberately won't write code until you send it.
 
 Claude steps out the same way when something has to be exact, like a warning or a command you need to run.
+
+The plugin also carries `present-findings`, which review skills such as [squint-review](../squint-review/README.md) and [magic-tricks](../magic-tricks/README.md) use to walk you through what they found, one finding per turn, over coffee.
