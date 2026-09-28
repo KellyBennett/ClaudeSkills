@@ -21,7 +21,7 @@ Ask these of every class in scope, while squinting and again at the end:
 
 ### 1. Set up the worktree
 
-- PR number or URL: `gh pr view <pr> --json number,headRefName,baseRefName,isCrossRepository`, fetch the head branch, and `git worktree add ../<repo>-squint-<branch> <headRefName>`.
+- PR number or URL: `gh pr view <pr> --json number,headRefName,headRefOid,baseRefName,isCrossRepository`, fetch the head branch, and `git worktree add ../<repo>-squint-<branch> <headRefName>`.
 - Branch: the same, with that branch against the default branch.
 - Nothing given: work in place on the current branch.
 
@@ -31,11 +31,13 @@ Done when you are in the worktree and have the list of files in scope.
 
 ### 2. Go green
 
-Find the project's test command from its manifests, scripts, or `CLAUDE.md`, and run the tests covering the scope. A red suite ends the review: report the failures and stop.
+Find the project's test command from its manifests, scripts, or `CLAUDE.md`.
+
+When the target is a PR, the worktree's `HEAD` is its `headRefOid`, and every check in `gh pr checks` passed, CI has already shown the suite green: skip the local run. Otherwise run the tests covering the scope. A red suite ends the review: report the failures and stop.
 
 For each file in scope, judge whether its tests pin the behavior you are likely to move. Where they do not, plan **characterization tests** that record what the code does now, right or wrong.
 
-Done when the suite is green and every file in scope is either covered or has characterization tests planned.
+Done when the suite is known green and every file in scope is either covered or has characterization tests planned.
 
 ### 3. Squint
 
@@ -52,18 +54,21 @@ Done when every file in scope has been squinted at and every class has answers t
 
 Turn the smells into an ordered list of refactorings. Choose each one from [smells-to-patterns.md](smells-to-patterns.md).
 
-- Characterization tests come first, then the small cleanups that make a pattern visible (Compose Method, Extract Method), then the pattern refactorings.
+- Characterization tests come first, then the small cleanups that make a pattern visible (Compose Method, Extract Method), then the pattern refactorings. Within each group, highest cost first.
+- Name each refactoring's prerequisites among the earlier ones. Dropping a prerequisite drops or re-plans what depends on it.
 - Say for each one whether you refactor **to** the pattern, **toward** it, or **away** from it. Stop toward a pattern once the smell's cost is gone. Go away from one that the code does not earn (Speculative Generality).
 - List the smells you are deliberately deferring, each with the reason.
 
 Ask the user whether they want the full report or to go through it one at a time.
 
-- **Full report**: show the plan (smell, location, cost, refactoring, direction) and wait for them to approve or trim it.
-- **One at a time**: load the `over-coffee:coffee` skill and walk the plan in order, one refactoring per turn: the smell, what it costs, and the refactoring you would reach for. The user keeps, defers, or drops each one. The refactorings they keep are the approved plan, and the walk ends when they send you off to do the work.
+- **Full report**: show the plan (smell, location, cost, refactoring, direction, prerequisites) and wait for them to approve or trim it.
+- **One at a time**: load the `over-coffee:coffee` skill and walk the plan in order, one refactoring per turn: the smell, what it costs, the refactoring you would reach for, and what it depends on. The user keeps, defers, or drops each one. Finish with the deferred smells, briefly, so any can be pulled back in. The refactorings they keep are the approved plan, and the walk ends when they send you off to do the work.
 
 Done when the user approves a plan.
 
 ### 5. Refactor
+
+When step 2 trusted CI, run the tests covering the first refactoring before any edit. Red here means the local environment cannot run the tests: stop and report it.
 
 For each approved refactoring, in order:
 
