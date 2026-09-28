@@ -70,7 +70,7 @@ Done when the user has seen every recommendation and made a choice for each.
 
 #### One at a time
 
-Load the `over-coffee:coffee` skill. Each recommendation opens with a header, stepped out of the conversation because a location has to be exact: `path:line`, and for a PR a link to those lines in the diff (`<pr-url>/files#diff-<sha256 of path>R<start>-R<end>`). The user looks at the code there while you talk.
+Load the `over-coffee:coffee` skill. Each recommendation opens with a header, stepped out of the conversation because a location has to be exact: `path:line`, and for a PR a link to those lines in the diff, written as `[See in diff](<pr-url>/files#diff-<sha256 of path>R<start>-R<end>)`. The user looks at the code there while you talk.
 
 Then talk it over at the table: the smell, what it costs, the change you would ask the author for, and what it depends on. You are a reviewer recommending a change to someone else's code, and you sound like one: "I'd ask them to pull that into one function."
 
