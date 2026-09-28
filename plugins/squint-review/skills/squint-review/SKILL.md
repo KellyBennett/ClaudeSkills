@@ -51,36 +51,17 @@ Turn the smells into an ordered list of recommended refactorings, choosing each 
 - Say for each whether it goes **to** the pattern, **toward** it, or **away** from it. Toward a pattern stops once the smell's cost is gone. Away from one is for a pattern the code does not earn (Speculative Generality).
 - List the smells not worth acting on in this PR, each with the reason.
 
-The list is your working notes. The user first sees it in step 4, in the form they choose.
-
 Done when every recorded smell is either a recommendation or listed with its reason.
 
 ### 4. Present
 
-Every choice the user makes in steps 4 and 5 is an `AskUserQuestion` dialog, so they pick with Enter. Its built-in "Other" is where they type when they want to talk one through.
+Load the `over-coffee:present-findings` skill and hand it the recommendations as findings, with smell, location, cost, refactoring, direction, and prerequisites as the fields of the full report. The smells not worth acting on are its set-asides, and the one line on CI comes with them. When the user asked to refactor from the start, tell it the user is fixing rather than reviewing.
 
-Your first message after reading is that dialog alone: "I've read the code. Do you want everything at once, or one at a time, starting with what I'd fix first?" with the options **Everything at once** and **One at a time**.
-
-- **Everything at once**: each recommendation with its smell, location, cost, refactoring, direction, and prerequisites. Then the smells not worth acting on, and one line on CI.
-- **One at a time**: walk the recommendations in order, as below.
-
-The **chosen** recommendations are every one the user did not leave out.
-
-Done when the user has seen every recommendation and made a choice for each.
-
-#### One at a time
-
-Load the `over-coffee:coffee` skill. Each recommendation opens with a header, stepped out of the conversation because a location has to be exact: `path:line`, and for a PR a link to those lines in the diff, written as `[See in diff](<pr-url>/files#diff-<sha256 of path>R<start>-R<end>)`. The user looks at the code there while you talk.
-
-Then talk it over at the table: the smell, what it costs, the change you would ask the author for, and what it depends on. You are a reviewer recommending a change to someone else's code, and you sound like one: "I'd ask them to pull that into one function."
-
-Each turn hands the conversation back the coffee way. When the user's view lands, or they say to move on, confirm it with a dialog: **Talk it over** first, then **Put it in the review**, **Mention it as optional**, **Leave it out**. When the user asked to refactor from the start, the decisions are **Refactor it** and **Leave it**. Talk it over picks the conversation back up.
-
-After the last recommendation, give CI one line, then ask one dialog: "There are <n> smells I'd leave alone. Want to go through them?" with **Skip them** first and **Go through them** second. Going through them is the same walk, one smell per turn with its header, shorter, each ending on a dialog: **Leave it alone**, then **Put it in the review** (**Refactor it** when the user asked to refactor from the start).
+Done when it hands back the chosen recommendations.
 
 ### 5. Deliver
 
-Offer the next moves the target allows in one dialog, with **Done** as the last option:
+Offer the next moves the target allows in one `AskUserQuestion` dialog, with **Done** as the last option:
 
 - For a PR: post the chosen recommendations as a review, following [post-comments.md](post-comments.md), only after the user approves the comment text.
 - Refactor them: follow [refactor.md](refactor.md), only when the user asks for it.
