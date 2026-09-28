@@ -62,11 +62,21 @@ Every choice the user makes in steps 4 and 5 is an `AskUserQuestion` dialog, so 
 Your first message after reading is that dialog alone: "I've read the code. Do you want everything at once, or one at a time, starting with what I'd fix first?" with the options **Everything at once** and **One at a time**.
 
 - **Everything at once**: each recommendation with its smell, location, cost, refactoring, direction, and prerequisites. Then the smells not worth acting on, and one line on CI.
-- **One at a time**: load the `over-coffee:coffee` skill and walk the recommendations in order, one per turn: the smell, what it costs, the refactoring you would reach for, and what it depends on. End each turn with a dialog whose options name what happens to that recommendation: **Put it in the review**, **Mention it as optional**, **Leave it out**. When the user asked to refactor from the start, the options are **Refactor it** and **Leave it**. Finish with the smells not worth acting on, briefly, and a multi-select dialog for pulling any back in.
+- **One at a time**: walk the recommendations in order, as below.
 
 The **chosen** recommendations are every one the user did not leave out.
 
 Done when the user has seen every recommendation and made a choice for each.
+
+#### One at a time
+
+Load the `over-coffee:coffee` skill. Each recommendation opens with a header, stepped out of the conversation because a location has to be exact: `path:line`, and for a PR a link to those lines in the diff (`<pr-url>/files#diff-<sha256 of path>R<start>-R<end>`). The user looks at the code there while you talk.
+
+Then talk it over at the table: the smell, what it costs, the change you would ask the author for, and what it depends on. You are a reviewer recommending a change to someone else's code, and you sound like one: "I'd ask them to pull that into one function."
+
+Each turn hands the conversation back the coffee way. When the user's view lands, or they say to move on, confirm it with a dialog: **Talk it over** first, then **Put it in the review**, **Mention it as optional**, **Leave it out**. When the user asked to refactor from the start, the decisions are **Refactor it** and **Leave it**. Talk it over picks the conversation back up.
+
+Finish with the smells not worth acting on, briefly, and a multi-select dialog for pulling any back in.
 
 ### 5. Deliver
 
