@@ -15,6 +15,12 @@
       "source": "./plugins/magic-tricks",
       "description": "Audit the tests in a PR or branch against Sandi Metz's Magic Tricks of Testing grid.",
       "category": "development"
+    },
+    {
+      "name": "squint-review",
+      "source": "./plugins/squint-review",
+      "description": "Squint-test a PR or branch and refactor it to patterns in small green steps, calling out each smell and refactoring as it goes.",
+      "category": "development"
     }
   ]
 }
