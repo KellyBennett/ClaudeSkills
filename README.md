@@ -8,6 +8,7 @@ A Claude Code plugin marketplace. Add it once and the plugins below become insta
 /plugin marketplace add KellyBennett/ClaudeSkills
 /plugin install over-coffee@kbennett-skills
 /plugin install magic-tricks@kbennett-skills
+/plugin install squint-review@kbennett-skills
 ```
 
 Every `/plugin` command also runs from a shell as `claude plugin`. `claude plugin list` should then show each installed plugin as enabled.
@@ -33,3 +34,8 @@ Audits the tests added or changed in a PR or branch against Sandi Metz's Magic T
 
 Run it with `/audit-tests <pr-or-branch>`. Details in the [plugin README](plugins/magic-tricks/README.md).
 
+### squint-review
+
+Refactors a PR or branch to patterns the way a careful human with plenty of time would. It squint-tests the changed code, proposes a plan of named refactorings for you to approve, then makes one commit per refactoring in its own worktree, keeping the tests green.
+
+Run it with `/squint-review <pr-or-branch>`. Details in the [plugin README](plugins/squint-review/README.md).
