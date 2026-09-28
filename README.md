@@ -36,6 +36,6 @@ Run it with `/audit-tests <pr-or-branch>`. Details in the [plugin README](plugin
 
 ### squint-review
 
-Refactors a PR or branch to patterns the way a careful human with plenty of time would. It squint-tests the changed code, proposes a plan of named refactorings for you to approve, then makes one commit per refactoring in its own worktree, keeping the tests green.
+Reviews a PR or branch the way a careful human with plenty of time would. It squint-tests the changed code, names each smell with the refactoring that would cure it, and offers to post the findings as a PR review. Ask it to refactor and it carries the recommendations out, one commit per refactoring with tests green.
 
 Run it with `/squint-review <pr-or-branch>`. Details in the [plugin README](plugins/squint-review/README.md).
