@@ -45,27 +45,29 @@ For each test case, name the subject, then every message the test sends, stubs, 
 - **Sent to self** tested at all: private methods called directly, the subject stubbed or expected to receive its own messages (partial mocks).
 - **Outgoing query** asserted as sent (`expect(x).to receive(:query)`, `verify(x).query()`). Stubbing it is correct.
 - **Outgoing command** left unasserted, or asserted by checking its effect inside the collaborator (a database row, a delivered email) instead of expecting the message.
-- **Doubles** with no executable connection to the collaborator's real API. Apply the contract check below regardless of language or framework support.
+- **Doubles** without an ongoing automated safeguard against API drift. Apply the check below regardless of language or framework support.
 
-#### Keep doubles synchronized with the real API
+#### Require ongoing protection against API drift
 
-For every stub, mock, spy, or fake used by an in-scope test, identify the production collaborator or role it replaces and the executable evidence that both conform to that role. Read the relevant interface, production wiring, and contract checks even when those files are outside the diff. Keep findings scoped to the in-scope tests that depend on them.
+For every stub, mock, spy, or fake used by an in-scope test, ask: **If the real collaborator's relevant API changes later, what automatically fails in the normal build/test workflow so this double cannot silently keep tests green?** Matching the API today, or checking it manually during this review, is not sufficient.
 
-- Prefer an existing compiler check or verified double tied to the real collaborator (`instance_double`, `create_autospec`) when it checks the relevant methods and signatures. Accept equivalent protection; do not require a particular library or redundant assertions.
-- Without that protection, require an automated contract check against the real implementation. A separately copied test interface, matching method names by inspection, or a promise to update the double manually is not synchronization. If the implementation is unavailable, report the contract as unverified and name the missing evidence; do not invent a mismatch or mark it clean.
-- Distinguish API shape from behavior. Signature checks do not establish return-value meaning, errors, or state transitions. When tests rely on behavior implemented by a fake, require focused shared contract tests against the fake and real implementation for that relied-on behavior, or equivalent existing evidence. Do not recreate the collaborator's entire test suite or add call expectations to outgoing queries merely to verify a double.
+1. Look first for protection already in use: the project's double library, verification configuration, compiler checks, or automated contract tests. Read the relevant setup, production wiring, and build/test configuration even outside the diff. Confirm that the mechanism covers this particular double, is tied to the real implementation or shared production role, and runs routinely. Installing a mocking library is not enough; verification must actually be enabled and applicable.
+2. If an existing mechanism detects relevant future drift, do not raise an API-drift finding or demand another mechanism. Accept equivalent protection without prescribing a framework.
+3. If no such mechanism exists, raise a prominent, actionable finding for the PR author even when the double currently matches the real API. State that a future API change can leave these tests falsely green, name the affected doubles/tests, and require the smallest ongoing automated safeguard appropriate to the project. Treat this as a required fix, not an optional suggestion. Do not claim a mismatch already exists unless one is observed.
+4. If protection cannot be verified because source or configuration is unavailable, say exactly what is missing and request evidence of the ongoing safeguard. Do not silently mark it clean or assert that no safeguard exists.
 
-For Go, follow the interface the production consumer actually accepts. Confirm that both the real implementation and the double are checked against that same interface in compiled production/test code. Ordinary assignments or constructor calls can already provide this guarantee. Where the connection is otherwise absent, use compile-time assertions such as:
+For Go, follow the interface the production consumer actually accepts. Require the normal build/test workflow to continue compiling both the real implementation and the double against that same interface. Existing assignments or constructor calls can already enforce this. Where a connection is missing, suggest compile-time assertions such as:
 
 ```go
 var _ Sender = (*RealSender)(nil)
 var _ Sender = (*StubSender)(nil)
 ```
 
-Use the actual types and pointer/value forms used by the program. Do not demand these declarations when existing wiring already proves conformance. Generated mocks receive the same check; generation alone is not proof that the current production implementation still satisfies the role. A test-only interface checked only against a fake leaves the real API unchecked. Use the repository's build/test checks to compile both sides, including relevant build tags. See [Go's interface checks](https://go.dev/doc/effective_go#blank_implements).
+Use the actual types and pointer/value forms used by the program. Check that the relevant packages and build tags are included in routine checks. If the real implementation stops satisfying the interface, the production check must fail; if the interface changes incompatibly, the double's check must fail. Do not demand redundant assertions when existing compiled wiring provides this protection. A test-only interface checked only against a fake, or a generated mock with no ongoing check against the production contract, is insufficient. See [Go's interface checks](https://go.dev/doc/effective_go#blank_implements).
 
-For each double, record the real role, the evidence location, what the check covers (signatures and/or behavior), and any remaining gap. In a finding, name the missing connection and the smallest automated check that would detect drift. Do not classify a stub or mock as unsafe solely because it is handwritten or does not use a mocking framework.
+Distinguish signature drift from behavioral drift. Compiler checks and signature-verifying doubles do not establish return-value meaning, errors, or state transitions. When tests rely on behavior implemented by a fake, look for focused shared contract tests run routinely against the fake and real implementation, or equivalent automated protection for that behavior. Do not recreate the collaborator's entire test suite or add call expectations to outgoing queries merely to guard against drift.
 
+Record which mechanism will detect future drift, where it is configured or enforced, and how it runs. Keep findings scoped to in-scope tests that depend on the double. Do not flag handwritten doubles merely for lacking a mocking framework.
 A test with no single subject, such as an integration, system, or end-to-end test, sits outside the grid. Mark it out of scope and move on.
 
 Done when every in-scope test case has a verdict: clean, violations listed, or out of scope.
