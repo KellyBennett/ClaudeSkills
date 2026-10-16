@@ -9,6 +9,7 @@ A Claude Code plugin marketplace. Add it once and the plugins below become insta
 /plugin install over-coffee@kbennett-skills
 /plugin install magic-tricks@kbennett-skills
 /plugin install squint-review@kbennett-skills
+/plugin install readme-writer@kbennett-skills
 ```
 
 Every `/plugin` command also runs from a shell as `claude plugin`. `claude plugin list` should then show each installed plugin as enabled.
@@ -21,6 +22,12 @@ claude plugin marketplace remove kbennett-skills
 ```
 
 ## Plugins
+
+### readme-writer
+
+Writes READMEs for people with little time. Explains the value, installation, and first use in a direct, opinionated voice, with brief contribution guidance when useful. Leaves implementation details to other documents.
+
+Run it with `/readme-writer`, or ask it to write, rewrite, or review a README. Details in the [plugin README](plugins/readme-writer/README.md).
 
 ### over-coffee
 

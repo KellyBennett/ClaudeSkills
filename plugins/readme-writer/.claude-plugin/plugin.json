@@ -1,0 +1,11 @@
+{
+  "name": "readme-writer",
+  "version": "0.1.0",
+  "description": "Write READMEs for people with little time: what it does, how to install it, and how to use it.",
+  "author": {
+    "name": "Kelly Bennett"
+  },
+  "skills": [
+    "./skills/"
+  ]
+}
