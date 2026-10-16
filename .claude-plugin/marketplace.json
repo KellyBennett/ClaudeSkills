@@ -5,6 +5,12 @@
   },
   "plugins": [
     {
+      "name": "readme-writer",
+      "source": "./plugins/readme-writer",
+      "description": "Write READMEs for people with little time: what it does, how to install it, and how to use it.",
+      "category": "productivity"
+    },
+    {
       "name": "over-coffee",
       "source": "./plugins/over-coffee",
       "description": "Talk through code or a decision the way two co-workers talk over coffee — short spoken turns, plain English, no code on the table.",
