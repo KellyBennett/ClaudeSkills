@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["head", "squint", "magic_tricks", "unresolved", "blockers"],
+  "properties": {
+    "head": {"type": "string"},
+    "squint": {"type": "string"},
+    "magic_tricks": {"type": "string"},
+    "unresolved": {"type": "array", "items": {"type": "string"}},
+    "blockers": {"type": "array", "items": {"type": "string"}}
+  }
+}

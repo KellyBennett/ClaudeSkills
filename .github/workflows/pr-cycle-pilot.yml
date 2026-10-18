@@ -1,0 +1,20 @@
+name: PR cycle pilot (manual, disabled until setup)
+on:
+  workflow_dispatch:
+    inputs:
+      pr: {description: 'Open non-draft PR number', type: number, required: true}
+permissions: {}
+jobs:
+  cycle:
+    uses: ./.github/workflows/pr-cycle.yml
+    permissions:
+      contents: write
+      pull-requests: write
+      statuses: write
+    with:
+      shared-ref: ${{ github.sha }}
+      pr: ${{ inputs.pr }}
+      enabled: ${{ vars.PR_CYCLE_ENABLED == 'true' }}
+      test-command: python3 -m unittest discover -s automation/tests -v
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

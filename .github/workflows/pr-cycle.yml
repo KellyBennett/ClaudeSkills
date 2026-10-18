@@ -1,0 +1,225 @@
+name: Independent review and fix cycle
+on:
+  workflow_call:
+    inputs:
+      shared-ref:
+        description: Full SHA matching the reusable workflow reference
+        type: string
+        required: true
+      pr: {type: number, required: true}
+      enabled: {type: boolean, default: false}
+      test-command:
+        description: Trusted caller's complete setup and relevant test command
+        type: string
+        required: true
+    secrets:
+      OPENAI_API_KEY: {required: false}
+permissions: {}
+concurrency:
+  group: pr-cycle-${{ github.repository }}-${{ inputs.pr }}
+  cancel-in-progress: true
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      head: ${{ steps.snapshot.outputs.head }}
+      base: ${{ steps.snapshot.outputs.base }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: KellyBennett/ClaudeSkills
+          ref: ${{ inputs.shared-ref }}
+          path: control
+          persist-credentials: false
+      - id: snapshot
+        run: python3 control/automation/cycle.py snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR: ${{ inputs.pr }}
+          ENABLED: ${{ inputs.enabled }}
+          SHARED_REF: ${{ inputs.shared-ref }}
+      - name: Require API credential
+        env:
+          API_KEY_PRESENT: ${{ secrets.OPENAI_API_KEY != '' }}
+        run: test "$API_KEY_PRESENT" = true
+  initial:
+    needs: snapshot
+    uses: ./.github/workflows/pr-review-stage.yml
+    permissions:
+      contents: read
+      pull-requests: write
+    with:
+      shared-ref: ${{ inputs.shared-ref }}
+      pr: ${{ inputs.pr }}
+      head: ${{ needs.snapshot.outputs.head }}
+      base: ${{ needs.snapshot.outputs.base }}
+      phase: initial
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  fix:
+    needs: [snapshot, initial]
+    if: needs.initial.outputs.clean != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: KellyBennett/ClaudeSkills
+          ref: ${{ inputs.shared-ref }}
+          path: control
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ needs.snapshot.outputs.head }}
+          path: target
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: review-initial
+          path: result
+      - run: python3 control/automation/cycle.py prompt
+        env:
+          HEAD: ${{ needs.snapshot.outputs.head }}
+          BASE: ${{ needs.snapshot.outputs.base }}
+          MODE: fix
+      - uses: openai/codex-action@1d82a3dba7c7988ec71ecae1ed5b8e8db96495c5
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          working-directory: target
+          prompt-file: prompt.txt
+          output-file: result/fixer.md
+          sandbox: workspace-write
+          safety-strategy: drop-sudo
+      - run: python3 control/automation/cycle.py export
+        env:
+          HEAD: ${{ needs.snapshot.outputs.head }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: proposed-fix
+          path: |
+            result/fix.patch
+            result/fixer.md
+          if-no-files-found: error
+          retention-days: 14
+  test:
+    needs: [snapshot, initial, fix]
+    if: always() && needs.initial.result == 'success' && (needs.fix.result == 'success' || needs.initial.outputs.clean == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: KellyBennett/ClaudeSkills
+          ref: ${{ inputs.shared-ref }}
+          path: control
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ needs.snapshot.outputs.head }}
+          path: target
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        if: needs.fix.result == 'success'
+        with:
+          name: proposed-fix
+          path: result
+      - run: python3 control/automation/cycle.py apply
+        if: needs.fix.result == 'success'
+        env:
+          HEAD: ${{ needs.snapshot.outputs.head }}
+      - name: Relevant tests without API or write credentials
+        working-directory: target
+        env:
+          TEST_COMMAND: ${{ inputs.test-command }}
+        run: |
+          test -n "$TEST_COMMAND"
+          bash -euo pipefail -c "$TEST_COMMAND"
+  push:
+    needs: [snapshot, initial, fix, test]
+    if: always() && needs.test.result == 'success' && needs.fix.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      head: ${{ steps.push.outputs.head }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: KellyBennett/ClaudeSkills
+          ref: ${{ inputs.shared-ref }}
+          path: control
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ needs.snapshot.outputs.head }}
+          path: target
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: proposed-fix
+          path: result
+      - id: push
+        run: python3 control/automation/cycle.py push
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR: ${{ inputs.pr }}
+          HEAD: ${{ needs.snapshot.outputs.head }}
+  final:
+    needs: [snapshot, initial, test, push]
+    if: always() && needs.test.result == 'success' && (needs.push.result == 'success' || needs.initial.outputs.clean == 'true')
+    uses: ./.github/workflows/pr-review-stage.yml
+    permissions:
+      contents: read
+      pull-requests: write
+    with:
+      shared-ref: ${{ inputs.shared-ref }}
+      pr: ${{ inputs.pr }}
+      head: ${{ needs.push.outputs.head || needs.snapshot.outputs.head }}
+      base: ${{ needs.snapshot.outputs.base }}
+      phase: final
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  gate:
+    name: PR review cycle result
+    needs: [snapshot, initial, test, push, final]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: KellyBennett/ClaudeSkills
+          ref: ${{ inputs.shared-ref }}
+          path: control
+          persist-credentials: false
+      - name: Publish result on the exact reviewed commit
+        run: python3 control/automation/cycle.py status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR: ${{ inputs.pr }}
+          HEAD: ${{ needs.push.outputs.head || needs.snapshot.outputs.head }}
+          FINAL_RESULT: ${{ needs.final.result }}
+          CLEAN: ${{ needs.final.outputs.clean }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      - if: failure()
+        run: echo 'BLOCKED or unresolved. Inspect full PR reviews and failed jobs. No merge is authorized.' >> "$GITHUB_STEP_SUMMARY"

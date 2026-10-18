@@ -1,0 +1,20 @@
+# Copy only after setup/approval. Replace BOTH occurrences with the same reviewed SHA.
+name: PR review cycle
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+permissions: {}
+jobs:
+  cycle:
+    uses: KellyBennett/ClaudeSkills/.github/workflows/pr-cycle.yml@REVIEWED_COMMIT_SHA
+    permissions:
+      contents: write
+      pull-requests: write
+      statuses: write
+    with:
+      shared-ref: REVIEWED_COMMIT_SHA
+      pr: ${{ github.event.pull_request.number }}
+      enabled: ${{ vars.PR_CYCLE_ENABLED == 'true' }}
+      test-command: python3 -m unittest discover -s tests -v # Replace for this repository.
+    secrets:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
