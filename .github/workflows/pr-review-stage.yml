@@ -1,0 +1,81 @@
+name: Independent full review
+on:
+  workflow_call:
+    inputs:
+      shared-ref: {type: string, required: true}
+      pr: {type: number, required: true}
+      head: {type: string, required: true}
+      base: {type: string, required: true}
+      phase: {type: string, required: true}
+    secrets:
+      OPENAI_API_KEY: {required: true}
+    outputs:
+      clean:
+        value: ${{ jobs.publish.outputs.clean }}
+permissions: {}
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: KellyBennett/ClaudeSkills
+          ref: ${{ inputs.shared-ref }}
+          path: control
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ inputs.head }}
+          path: target
+          fetch-depth: 0
+          persist-credentials: false
+      - run: python3 control/automation/cycle.py prompt
+        env:
+          HEAD: ${{ inputs.head }}
+          BASE: ${{ inputs.base }}
+          MODE: review
+      - uses: openai/codex-action@1d82a3dba7c7988ec71ecae1ed5b8e8db96495c5
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          working-directory: target
+          prompt-file: prompt.txt
+          output-file: result/report.json
+          output-schema-file: control/automation/review.schema.json
+          sandbox: read-only
+          safety-strategy: drop-sudo
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: review-${{ inputs.phase }}
+          path: result/report.json
+          if-no-files-found: error
+          retention-days: 14
+  publish:
+    needs: review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    outputs:
+      clean: ${{ steps.publish.outputs.clean }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: KellyBennett/ClaudeSkills
+          ref: ${{ inputs.shared-ref }}
+          path: control
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: review-${{ inputs.phase }}
+          path: result
+      - id: publish
+        run: python3 control/automation/cycle.py publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR: ${{ inputs.pr }}
+          HEAD: ${{ inputs.head }}
