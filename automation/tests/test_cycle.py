@@ -1,8 +1,10 @@
 """Policy tests and real-Git integration tests; no model or GitHub doubles."""
 import copy
 import importlib.util
+import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -77,7 +79,10 @@ class PatchIntegrationTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.repo = Path(self.temp.name)
+        self.workspace = Path(self.temp.name)
+        self.repo = self.workspace / 'target'
+        self.repo.mkdir()
+        (self.workspace / 'result').mkdir()
         self.git('init', '-q')
         (self.repo / 'code.py').write_text('value = 1\n')
         self.git('add', '.')
@@ -86,6 +91,13 @@ class PatchIntegrationTests(unittest.TestCase):
 
     def git(self, *args):
         return subprocess.check_output(['git', *args], cwd=self.repo, text=True).strip()
+
+    def run_stage(self, stage, head=None):
+        return subprocess.run(
+            [sys.executable, str(Path(cycle.__file__).resolve()), stage],
+            cwd=self.workspace, env=dict(os.environ, HEAD=head or self.head),
+            text=True, capture_output=True,
+        )
 
     def test_regular_staged_code_change_is_accepted(self):
         (self.repo / 'code.py').write_text('value = 2\n')
@@ -106,12 +118,71 @@ class PatchIntegrationTests(unittest.TestCase):
 
     def test_real_patch_round_trip_preserves_new_file(self):
         (self.repo / 'new.py').write_text('answer = 42\n')
+        result = self.run_stage('export')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.git('reset', '--hard', self.head)
+        result = self.run_stage('apply')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.repo / 'new.py').read_text(), 'answer = 42\n')
+        self.assertEqual(self.git('show', ':new.py'), 'answer = 42')
+
+    def test_cli_patch_round_trip_preserves_final_blank_context(self):
+        (self.repo / 'code.py').write_text('value = 1\n\n')
+        self.git('add', '.')
+        self.git('-c', 'user.name=Test', '-c', 'user.email=test@example.com',
+                 'commit', '-qm', 'blank context')
+        self.head = self.git('rev-parse', 'HEAD')
+        (self.repo / 'code.py').write_text('value = 2\n\n')
+        result = self.run_stage('export')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.git('reset', '--hard', self.head)
+        result = self.run_stage('apply')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.repo / 'code.py').read_bytes(), b'value = 2\n\n')
+
+    def test_cli_export_rejects_changed_head_without_emitting_patch(self):
+        result = self.run_stage('export', head='0' * 40)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('Fixer changed HEAD', result.stderr)
+        self.assertFalse((self.workspace / 'result/fix.patch').exists())
+
+    def test_cli_apply_rejects_protected_patch(self):
+        (self.repo / 'AGENTS.md').write_text('Change instructions\n')
         self.git('add', '.')
         patch = subprocess.check_output(['git', 'diff', '--binary', self.head], cwd=self.repo)
+        (self.workspace / 'result/fix.patch').write_bytes(patch)
         self.git('reset', '--hard', self.head)
-        subprocess.run(['git', 'apply', '--index'], input=patch, cwd=self.repo, check=True)
-        cycle.validate_changes(self.repo, self.head)
-        self.assertEqual((self.repo / 'new.py').read_text(), 'answer = 42\n')
+        result = self.run_stage('apply')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('protected control/secret files', result.stderr)
+
+    def test_cli_export_and_apply_reject_both_sides_of_protected_renames(self):
+        for source, destination in [
+            ('AGENTS.md', 'ordinary.md'),
+            ('.github/workflows/example.yml', 'ordinary.yml'),
+            ('code.py', 'sub/AGENTS.md'),
+        ]:
+            with self.subTest(source=source, destination=destination):
+                source_path = self.repo / source
+                source_path.parent.mkdir(parents=True, exist_ok=True)
+                source_path.write_text('original content\n')
+                self.git('add', '.')
+                self.git('-c', 'user.name=Test', '-c', 'user.email=test@example.com',
+                         'commit', '-qm', 'rename baseline')
+                self.head = self.git('rev-parse', 'HEAD')
+                (self.repo / destination).parent.mkdir(parents=True, exist_ok=True)
+                self.git('mv', '-f', source, destination)
+                patch = subprocess.check_output(
+                    ['git', 'diff', '--binary', self.head], cwd=self.repo)
+                result = self.run_stage('export')
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('protected control/secret files', result.stderr)
+                self.git('reset', '--hard', self.head)
+                (self.workspace / 'result/fix.patch').write_bytes(patch)
+                result = self.run_stage('apply')
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('protected control/secret files', result.stderr)
+                self.git('reset', '--hard', self.head)
 
 
 if __name__ == '__main__':
