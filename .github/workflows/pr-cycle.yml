@@ -90,12 +90,12 @@ jobs:
           HEAD: ${{ needs.snapshot.outputs.head }}
           BASE: ${{ needs.snapshot.outputs.base }}
           MODE: fix
-      - uses: openai/codex-action@1d82a3dba7c7988ec71ecae1ed5b8e8db96495c5
+      - uses: openai/codex-action@bdf19a4a223ec2549a3e2274a0cf61556bc07675
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          working-directory: target
-          prompt-file: prompt.txt
-          output-file: result/fixer.md
+          working-directory: ${{ github.workspace }}/target
+          prompt-file: ${{ github.workspace }}/prompt.txt
+          output-file: ${{ github.workspace }}/result/fixer.md
           sandbox: workspace-write
           safety-strategy: drop-sudo
       - run: python3 control/automation/cycle.py export

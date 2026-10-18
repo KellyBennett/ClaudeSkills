@@ -37,13 +37,13 @@ jobs:
           HEAD: ${{ inputs.head }}
           BASE: ${{ inputs.base }}
           MODE: review
-      - uses: openai/codex-action@1d82a3dba7c7988ec71ecae1ed5b8e8db96495c5
+      - uses: openai/codex-action@bdf19a4a223ec2549a3e2274a0cf61556bc07675
         with:
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          working-directory: target
-          prompt-file: prompt.txt
-          output-file: result/report.json
-          output-schema-file: control/automation/review.schema.json
+          working-directory: ${{ github.workspace }}/target
+          prompt-file: ${{ github.workspace }}/prompt.txt
+          output-file: ${{ github.workspace }}/result/report.json
+          output-schema-file: ${{ github.workspace }}/control/automation/review.schema.json
           sandbox: read-only
           safety-strategy: drop-sudo
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

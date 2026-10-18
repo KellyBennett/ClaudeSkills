@@ -11,9 +11,10 @@ class Blocked(RuntimeError):
     pass
 
 
-def command(*args, cwd=None, data=None):
-    return subprocess.run(args, cwd=cwd, input=data, text=True, check=True,
-                          capture_output=True).stdout.strip()
+def command(*args, cwd=None, data=None, raw=False):
+    result = subprocess.run(args, cwd=cwd, input=data, text=not raw, check=True,
+                            capture_output=True).stdout
+    return result if raw else result.strip()
 
 
 def api(path, body=None):
@@ -125,7 +126,8 @@ def protected(path):
 
 
 def validate_changes(repo, head):
-    names = command('git', 'diff', '--name-only', '-z', head, cwd=repo).split('\0')
+    names = command('git', 'diff', '--no-renames', '--name-only', '-z', head,
+                    cwd=repo, raw=True).decode().split('\0')
     forbidden = [name for name in names if name and protected(name)]
     if forbidden:
         raise Blocked('Fix touches protected control/secret files: ' + ', '.join(forbidden))
@@ -141,12 +143,13 @@ def export_patch():
         raise Blocked('Fixer changed HEAD; no patch accepted')
     command('git', 'add', '-A', cwd=repo)
     validate_changes(repo, os.environ['HEAD'])
-    Path('result/fix.patch').write_text(command('git', 'diff', '--binary', os.environ['HEAD'], cwd=repo) + '\n')
+    Path('result/fix.patch').write_bytes(command('git', 'diff', '--binary',
+                                               os.environ['HEAD'], cwd=repo, raw=True))
 
 
 def apply_patch():
     patch = Path('result/fix.patch').resolve()
-    if patch.read_text().strip():
+    if patch.read_bytes().strip():
         command('git', 'apply', '--index', str(patch), cwd='target')
     validate_changes('target', os.environ['HEAD'])
 
@@ -171,6 +174,7 @@ def push():
 
 
 def prompt():
+    Path('result').mkdir(exist_ok=True)
     root = Path(__file__).resolve().parent.parent
     head, base = os.environ['HEAD'], os.environ['BASE']
     common = f'''Target is this repository, base {base}, exact head {head}.
