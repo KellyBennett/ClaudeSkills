@@ -79,3 +79,12 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           PR: ${{ inputs.pr }}
           HEAD: ${{ inputs.head }}
+          PHASE: ${{ inputs.phase }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: review-published-${{ inputs.phase }}
+          path: |
+            result/report.json
+            result/publication.json
+          if-no-files-found: error
+          retention-days: 14
