@@ -1,6 +1,7 @@
 """Policy tests and real-Git integration tests; no model or GitHub doubles."""
 import copy
 import importlib.util
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -38,6 +39,28 @@ class ReviewPolicyTests(unittest.TestCase):
             report = dict(self.report, **{key: value})
             with self.subTest(key=key), self.assertRaises(cycle.Blocked):
                 cycle.validate_report(report, 'a' * 40)
+
+    def test_fixer_requires_complete_exact_head_publication(self):
+        receipt = dict(head=self.report['head'], phase='initial',
+                       report_digest=cycle.report_digest(self.report), review_ids=[123])
+        self.assertEqual(cycle.validate_publication(receipt, self.report, self.report['head']), receipt)
+        for change in [dict(head='b' * 40), dict(phase='final'),
+                       dict(report_digest='stale'), dict(review_ids=[]),
+                       dict(review_ids=[True]), dict(review_ids=[123, 456])]:
+            with self.subTest(change=change), self.assertRaises(cycle.Blocked):
+                cycle.validate_publication(dict(receipt, **change), self.report, self.report['head'])
+        changed_report = dict(self.report, unresolved=['New finding after publication'])
+        with self.assertRaises(cycle.Blocked):
+            cycle.validate_publication(receipt, changed_report, self.report['head'])
+
+    def test_partial_long_review_publication_cannot_start_fixer(self):
+        self.report['squint'] *= 2000
+        receipt = dict(head=self.report['head'], phase='initial',
+                       report_digest=cycle.report_digest(self.report), review_ids=[123])
+        with self.assertRaises(cycle.Blocked):
+            cycle.validate_publication(receipt, self.report, self.report['head'])
+        receipt['review_ids'] = list(range(1, len(cycle.chunks(cycle.review_body(self.report))) + 1))
+        self.assertEqual(cycle.validate_publication(receipt, self.report, self.report['head']), receipt)
 
     def test_full_reviews_survive_chunking(self):
         self.report['squint'] = 'Full detailed review.\n' * 6000
@@ -98,6 +121,37 @@ class PatchIntegrationTests(unittest.TestCase):
             cwd=self.workspace, env=dict(os.environ, HEAD=head or self.head),
             text=True, capture_output=True,
         )
+
+    def test_fixer_prompt_requires_published_review_and_preserves_roles(self):
+        report = dict(head=self.head, squint='Full Squint review with complete coverage.',
+                      magic_tricks='Full Magic Tricks audit with complete coverage.',
+                      unresolved=['Fix the defect'], blockers=[])
+        (self.workspace / 'result/report.json').write_text(json.dumps(report))
+        env = dict(os.environ, HEAD=self.head, BASE=self.head, MODE='fix')
+        def run_prompt():
+            return subprocess.run([sys.executable, str(Path(cycle.__file__).resolve()), 'prompt'],
+                                  cwd=self.workspace, env=env, text=True, capture_output=True)
+        self.assertNotEqual(run_prompt().returncode, 0)
+        self.assertFalse((self.workspace / 'prompt.txt').exists())
+        receipt = dict(head=self.head, phase='initial', review_ids=[123],
+                       report_digest=cycle.report_digest(report))
+        (self.workspace / 'result/publication.json').write_text(json.dumps(receipt))
+        result = run_prompt()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        prompt = (self.workspace / 'prompt.txt').read_text()
+        self.assertIn('distinct from the implementer and reviewers', prompt)
+        self.assertIn('visible FOLLOW-UP commits', prompt)
+        self.assertIn('Do not force edits', prompt)
+        self.assertIn('ONE fix round', prompt)
+
+    def test_clean_patch_does_not_change_published_head(self):
+        result = self.run_stage('export')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.workspace / 'result/fix.patch').read_bytes(), b'')
+        result = self.run_stage('apply')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.git('rev-parse', 'HEAD'), self.head)
+        self.assertEqual(self.git('status', '--porcelain'), '')
 
     def test_regular_staged_code_change_is_accepted(self):
         (self.repo / 'code.py').write_text('value = 2\n')
@@ -185,5 +239,32 @@ class PatchIntegrationTests(unittest.TestCase):
                 self.git('reset', '--hard', self.head)
 
 
+class WorkflowSequenceTests(unittest.TestCase):
+    def test_separate_jobs_wait_for_publication_tests_push_and_final_review(self):
+        # Inspect the real workflow contract without adding a YAML runtime dependency.
+        root = Path(__file__).parents[2] / '.github/workflows'
+        workflow = (root / 'pr-cycle.yml').read_text()
+        fix = workflow.split('  fix:\n', 1)[1].split('  test:\n', 1)[0]
+        self.assertIn('needs: [snapshot, initial]', fix)
+        self.assertIn("if: needs.initial.outputs.clean != 'true'", fix)
+        self.assertIn('name: review-published-initial', fix)
+        self.assertIn('uses: openai/codex-action@', fix)
+        push = workflow.split('  push:\n', 1)[1].split('  final:\n', 1)[0]
+        self.assertIn('needs: [snapshot, initial, fix, test]', push)
+        self.assertIn("needs.test.result == 'success'", push)
+        final = workflow.split('  final:\n', 1)[1].split('  gate:\n', 1)[0]
+        self.assertIn('needs: [snapshot, initial, test, push]', final)
+        self.assertIn('uses: ./.github/workflows/pr-review-stage.yml', final)
+        self.assertIn('head: ${{ needs.push.outputs.head || needs.snapshot.outputs.head }}', final)
+        self.assertIn('phase: final', final)
+        review = (root / 'pr-review-stage.yml').read_text()
+        self.assertIn('sandbox: read-only', review)
+        publish = review.split('  publish:\n', 1)[1]
+        self.assertIn('needs: review', publish)
+        self.assertLess(publish.index('cycle.py publish'), publish.index('name: review-published-'))
+        self.assertIn('result/publication.json', publish)
+
+
 if __name__ == '__main__':
     unittest.main()
+

@@ -1,4 +1,4 @@
-name: Independent review and fix cycle
+name: Published PR independent review and fix cycle
 on:
   workflow_call:
     inputs:
@@ -47,6 +47,7 @@ jobs:
         env:
           API_KEY_PRESENT: ${{ secrets.OPENAI_API_KEY != '' }}
         run: test "$API_KEY_PRESENT" = true
+  # The implementation is already published: snapshot requires an existing open PR.
   initial:
     needs: snapshot
     uses: ./.github/workflows/pr-review-stage.yml
@@ -61,6 +62,7 @@ jobs:
       phase: initial
     secrets:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  # New agent process after both full reports are publicly posted.
   fix:
     needs: [snapshot, initial]
     if: needs.initial.outputs.clean != 'true'
@@ -83,7 +85,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          name: review-initial
+          name: review-published-initial
           path: result
       - run: python3 control/automation/cycle.py prompt
         env:
@@ -179,6 +181,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           PR: ${{ inputs.pr }}
           HEAD: ${{ needs.snapshot.outputs.head }}
+  # Another fresh reviewer inspects the exact latest published follow-up head.
   final:
     needs: [snapshot, initial, test, push]
     if: always() && needs.test.result == 'success' && (needs.push.result == 'success' || needs.initial.outputs.clean == 'true')
@@ -223,3 +226,4 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       - if: failure()
         run: echo 'BLOCKED or unresolved. Inspect full PR reviews and failed jobs. No merge is authorized.' >> "$GITHUB_STEP_SUMMARY"
+
