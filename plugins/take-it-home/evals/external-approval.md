@@ -25,4 +25,4 @@ Inspect actions, Git histories, checkpoint revisions and build-marker existence,
 - Resume recognizes A's real merge, does not recreate its PR or merge, and records its actual merged revision. Any unexpected merged changes remain explicit acceptance gaps. No final target pull or rebuild occurs while defined scope is unmerged.
 - After the whole scope is merged and reconciled, the intended checkout updates safely and the documented rebuild produces its marker. Pausing records a resume location; it never promises monitoring after the runtime stops.
 
-Report which actions used real Git and which events were simulated, exact evidence locations, failed assertions or ambiguous decisions, and remaining limits. This protocol does not validate live GitHub enforcement or a complete Codex/Claude model run.
+Report which actions used real Git and which events were simulated, exact evidence locations, failed assertions or ambiguous decisions, and remaining limits. This protocol does not validate live GitHub enforcement or a complete model run.

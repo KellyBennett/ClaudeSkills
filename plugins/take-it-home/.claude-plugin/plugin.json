@@ -1,6 +1,6 @@
 {
   "name": "take-it-home",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Carry defined work through implementation, independent reviews, fixes, merges, and a local rebuild.",
   "author": {
     "name": "Kelly Bennett"
