@@ -33,6 +33,12 @@
       "source": "./plugins/take-it-home",
       "description": "Carry defined work through implementation, independent reviews, fixes, merges, and a local rebuild.",
       "category": "development"
+    },
+    {
+      "name": "hotspot-triage",
+      "source": "./plugins/hotspot-triage",
+      "description": "Prioritize maintenance hotspots using churn, complexity, and test coverage.",
+      "category": "development"
     }
   ]
 }
