@@ -10,6 +10,7 @@ A Claude Code plugin marketplace. Add it once and the plugins below become insta
 /plugin install magic-tricks@kbennett-skills
 /plugin install squint-review@kbennett-skills
 /plugin install readme-writer@kbennett-skills
+/plugin install take-it-home@kbennett-skills
 ```
 
 Every `/plugin` command also runs from a shell as `claude plugin`. `claude plugin list` should then show each installed plugin as enabled.
@@ -46,3 +47,9 @@ Run it with `/audit-tests <pr-or-branch>`. Details in the [plugin README](plugin
 Reviews a PR or branch the way a careful human with plenty of time would. It squint-tests the changed code, names each smell with the refactoring that would cure it, and offers to post the findings as a PR review. Ask it to refactor and it carries the recommendations out, one commit per refactoring with tests green.
 
 Run it with `/squint-review <pr-or-branch>`. Details in the [plugin README](plugins/squint-review/README.md).
+
+### take-it-home
+
+Carries an agreed set of tasks all the way: an agent and a PR per task, two fresh reviewers per PR running squint-review and audit-tests, fixes and rechecks until clean, merges in dependency order, then a rebuild of your local checkout. Installing it installs squint-review and magic-tricks.
+
+Run it with `/take-it-home <tasks>`. Details in the [plugin README](plugins/take-it-home/README.md).

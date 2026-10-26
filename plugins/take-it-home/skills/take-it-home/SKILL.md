@@ -1,68 +1,81 @@
 ---
 name: take-it-home
-description: Carry an already-defined, bounded work set through parallel implementation, independent Squint and test reviews, fixes, dependency-ordered PR merges, and a safe local update and rebuild. Use when the user asks to take defined work through completion.
+description: Carry an agreed, bounded set of tasks through implementation, independent squint and test reviews, fixes, dependency-ordered merges, and a local rebuild.
+disable-model-invocation: true
 ---
 
 # Take it home
 
-Carry an already-defined, bounded work set through implementation, published pull requests, independent reviews, fixes, dependency-safe merges, and a safe local update and rebuild. This is not a task-discovery or global auto-merge policy.
+Finish work that is already defined: implement each task, publish a PR, have it reviewed independently, fix what the reviews find, merge in dependency order, then update and rebuild the user's checkout. Task discovery and standing auto-merge policy belong elsewhere.
 
-## Establish the run
+Invoking this skill authorizes, for the agreed tasks only, creating branches, worktrees and PRs, posting both full review reports, fixing their findings, and merging. Runtime permissions, repository rules, required checks, and the user's explicit limits still bind. Where a loaded skill requires approval of comment text, prepare the reports and ask once. A real unmet permission or scope decision is a **blocker**: record it exactly, and keep independent work moving.
 
-Read [platform guidance](references/platforms.md) for Codex or Claude Code discovery, delegation, and worktree handling.
+## Roles
 
-Invoking this workflow requests these actions for the agreed work set, including posting both full review reports and addressing their findings. Carry the user's actual authorization into delegated tasks, including their choice of full reports. Honor confirmation requirements in the loaded skills and runtime. If approval of the concrete comment text is still required, prepare both full reports and ask for that approval before posting; do not treat this skill as a permission bypass. Skill text alone grants no authority outside an invocation. Obey runtime permissions, repository rules, required checks and explicit user limits. Do not repeatedly ask for permission already given; a real unmet permission or scope decision is a blocker.
+The main conversation is the **orchestrator**. It plans, dispatches, publishes, merges, and owns the [checkpoint](checkpoint.md). Every other role is a fresh Agent call. A new agent knows only its prompt, so pass it the task, the skill names, and the exact revisions.
 
-Read repository instructions, including applicable AGENTS.md and .agents/skills, and documented validation and rebuild commands. Discover and read the actual squint-review and audit-tests skills and their referenced resources in the current environment. If either is unavailable, record the missing skill and block review and merge. Continue safe planning or implementation already authorized by the user, but never substitute a generic review or claim the run complete. Resolve the repository, target branch and local checkout. Record its branch, head and existing modifications without changing them.
+- **Implementer**: one per task, dispatched with `isolation: "worktree"`. Verify the returned worktree's branch and HEAD before trusting its work.
+- **Reviewers**: two per pass, distinct from every implementer and fixer of that PR. One runs `squint-review:squint-review`, the other `magic-tricks:audit-tests`. Both are read-only: they read revisions where they are, with no worktree and no test run. Tell them the user chose the full report and that they return it to you; publication and any confirmation happen in the orchestrator.
+- **Fixer**: distinct from the implementer and that pass's reviewers.
 
-Inspect existing branches, PRs and prior checkpoints before creating anything. Establish acceptance criteria and a dependency graph for the bounded tasks. Assign file or component ownership; serialize overlapping ownership or dependent work. Independent tasks may run concurrently in isolated worktrees. Prefer starting dependent tasks from the merged prerequisite; use stacked branches only with an explicit base relationship and a plan to rebase or retarget and revalidate. Respect user-selected models and runtime limits; do not install an agent harness or force concurrency.
+Independence is the point of the roles. Record which agent filled each one, and when a fresh context is unavailable, block that review.
 
-Inspect the actual target branch rules, required external reviewers or CODEOWNERS approvals, current review decisions, required checks or merge queue, and the authenticated account's merge permissions. Treat unavailable rule or permission evidence as unknown, not permission to merge. Fresh agents using the author's account do not satisfy a different-account approval requirement. Never switch identities or change repository settings or protections to satisfy the workflow.
+## Steps
 
-## Keep a resumable checkpoint
+### 1. Establish the run
 
-Keep a small durable run note in an allowed task location, outside unrelated product changes. Record scope and acceptance criteria, dependency edges, target checkout and original state, task branch/worktree/PR URLs, actual agent identities and roles, current head and base SHAs, test commands/results, complete report links and reviewed SHAs, finding dispositions and fix commits, merge evidence, local update/build evidence, and the next action or exact blocker. For external gates, also record the required approvals, reviewer identities/review IDs, reviewed commits and current validity. Include merge permission evidence and auto-merge or queue state and request identity. Update after each externally visible transition.
+Read the repository's AGENTS.md or CLAUDE.md and its documented check and rebuild commands. Confirm `squint-review:squint-review` and `magic-tricks:audit-tests` are available. When either is missing, record it and block review and merge; planning and implementation can still go ahead.
 
-Use states such as planned, implementing, published, reviewing, fixing, rechecking, merge-ready, awaiting-external-approval, awaiting-authorized-merge, merged, blocked, and done. The waiting states mean the internal review cycle is complete but an external gate remains; they are neither failed implementation nor overall completion.
+Record the local target checkout's branch, head, and existing modifications, changing nothing. Look for existing branches, PRs, and a prior checkpoint before creating anything. When a checkpoint exists, resume from it following [checkpoint.md](checkpoint.md).
 
-On resume reconcile the note against live Git and GitHub state. An uncertain push, review publication or merge requires read-back before retrying; reuse existing PRs and reports rather than duplicate them. For open PRs, inspect new external feedback, current head/base and approval validity before continuing. New commits or a changed base invalidate internal review evidence and may invalidate external approvals under repository rules. Address feedback and repeat the fix/recheck cycle before merging; never carry forward an approval merely because an old checkpoint calls it valid. Read back auto-merge and queue requests before attempting another. Confirm manually merged PRs and their actual merged revisions, reconcile any unexpected changes or missing acceptance evidence, and do not recreate or remerge them. Incomplete local rebuild is not overall completion.
+Write acceptance criteria for each task and a dependency graph. Give each task the files or components it owns. Tasks with overlapping ownership, or that depend on each other, run in sequence; independent tasks may run concurrently.
 
-## Implement and publish
+Read the target branch's merge gates following [merge-gates.md](merge-gates.md).
 
-Dispatch implementation agents with bounded acceptance criteria, dependencies, owned paths, isolated worktrees and relevant instructions. Have them implement and run repository-appropriate checks, recording results and gaps. Never reset, stash, discard or overwrite unrelated user changes without permission. Preserve commits and resumable worktrees on failure.
+Done when the checkpoint holds the scope, acceptance criteria, dependency edges, ownership, the target checkout's original state, and each merge gate or the fact that it is unknown.
 
-Publish completed implementation commits to a PR with its correct base and validation evidence. Do not fold review fixes into the initial implementation or rewrite history to hide them. A failing required test blocks merging; investigate and fix within scope, and continue other independent safe work. Do not invent successful CI results or bypass protections.
+### 2. Implement and publish
 
-## Review, fix and recheck
+Dispatch an implementer per ready task with its acceptance criteria, owned paths, dependencies, and the repository's instructions. Start a dependent task from its merged prerequisite. Stack it on an unmerged one only with an explicit base and a plan to retarget and revalidate once the prerequisite merges.
 
-A fresh reviewer means a new agent context for each pass, not a resumed earlier review session. Pass the scope, revisions and finding ledger as evidence without carrying over an author's or prior reviewer's reasoning. Record identities so independence can be checked. If separate contexts are unavailable, block that review rather than claim independence.
+Implementers run the repository's checks and report results and gaps. Unrelated user changes stay exactly as they are. On failure, keep the commits and worktree for resuming.
 
-For each published PR, capture the exact head and base. Start two fresh, distinct reviewers in parallel when capacity permits, otherwise sequentially with the same separation. Neither may be its implementer or fixer. One reads and applies squint-review; the other reads and applies audit-tests. Supply the full diff and revision access, scope and invocation authorization. Reviewers are read-only and follow the actual skills, including their source-inspection and .env exclusions. The orchestrator prepares revision access; reviewers do not create worktrees or run tests in conflict with their skills.
+Open each PR against its correct base with its validation evidence. A failing required check blocks that PR: investigate and fix within scope while other independent work continues.
 
-Publish both complete reports as COMMENT reviews pinned to the reviewed head, or PR comments clearly naming head and base when review submission is unavailable. Include clean results, set-asides and gaps, not only actionable summaries. Before posting, save the full report and a publication record identifying the PR, head/base, review type, expected parts and each part's content or digest. Split long reports without losing content. Record returned IDs and verify every posted part against that record. After a timeout, read existing publications and post only parts proven missing; uncertain delivery remains blocked. Do not treat a failed or partial publication as complete; do not change a COMMENT review into approval to satisfy branch protection.
+Done when every ready task has a PR whose head, base, and check results are in the checkpoint.
 
-Send the posted reports to a fresh fixer distinct from the implementer and both reviewers. Evaluate every finding. Make substantive fixes in new commits, run relevant checks and publish the fixes and a finding-by-finding disposition with evidence. Mark optional or inapplicable findings with reasons rather than silently dropping them. A required finding needs a fix or independent evidence that it does not apply; a disputed required finding blocks merge for a decision. Resolving a thread is bookkeeping, never proof of a fix. Do not invent changes when both reports are clean.
+### 3. Review
 
-After fixes, or after clean initial reports, use fresh independent reviewers, distinct from all authors/fixers, to apply both actual skills again to the complete latest diff. Use distinct agents for the two review skills. Publish full rechecks with their head and base and independently verify each original finding against code and tests. Fetch all PR comments and review threads, including human feedback; account for every actionable comment, and resolve threads only after its substantive disposition is verified and permissions allow it.
+Capture the PR's exact head and base SHAs, then start both reviewers in parallel with the full diff and those revisions.
 
-Repeat needed fixes and fresh rechecks while measurable progress remains within scope. Do not stop solely because a fixed number of workflow stages or one fix round elapsed. Stop the affected task as blocked if a finding recurs without new evidence, reviewers disagree on a required change, scope would expand, or a runtime/cost limit is reached. Record the exact remaining decision or prerequisite; continue independent work. Never loop indefinitely or silently waive a required issue.
+Publish each complete report as a `COMMENT` review pinned to the reviewed head, or as a PR comment naming head and base when a review can't be submitted. Publish everything: findings, clean results, set-asides, and gaps. Split a long report into parts without losing content. Before posting, save the report and the parts you expect; after posting, record the returned IDs and confirm each part landed. After a timeout, read what was posted and post only the parts proven missing.
 
-## External approval and handoff
+Done when both full reports for the current head and base are published and confirmed.
 
-Finish both internal reviews, any fixes, and fresh rechecks even when external approval is still missing. When otherwise ready, record `awaiting-external-approval` with the exact missing reviewer requirement. If approval is sufficient but the account or runtime cannot merge, record `awaiting-authorized-merge` instead. An approval alone does not grant merge permission. Continue independent tasks. Stack dependent work only when ownership and base relationships make it safe; never merge or arm auto-merge for a dependent PR before its prerequisites are merged and it has been revalidated.
+### 4. Fix and recheck
 
-Use existing repository auto-merge or its required merge queue when the invocation and runtime authorize the action and the account has permission. First confirm the complete internal cycle on the current head/base and all nonexternal prerequisites. Unattended merging must also be constrained by existing enforced checks that prevent a later unreviewed head or base from merging. A COMMENT report or a checkpoint is not an enforced check. If those safeguards or auto-merge availability cannot be established, leave a manual handoff rather than changing repository settings. Do not bypass checks or approvals. Record and verify the actual auto-merge/queue request, including its revision and pending requirements; enabling it is not a merge. Reconcile before retrying an uncertain request.
+Send both posted reports to a fixer. It evaluates every finding and puts substantive fixes in new commits on top of the implementation. Every finding gets a disposition with evidence: fixed, or not applicable with the reason. A required finding needs a fix or independent evidence it does not apply. A disputed required finding blocks merge until the user decides. Clean reports need no fixer.
 
-Before pushing a new fix or updating the base of a PR with a pending auto-merge or queue request created by this run, cancel that request or remove it from the queue. Verify cancellation and whether it already merged before proceeding, so it cannot merge before fresh rechecks. If cancellation is unavailable or uncertain, block the update and reconcile the live outcome. Do not overwrite another actor's merge automation; reconcile its ownership and require a safe handoff if it can race the required review cycle. On resume, re-read live rules, feedback, approval and automation state, then revalidate changed revisions before rearming or merging.
+Then dispatch a fresh pair of reviewers, distinct from every author and fixer, on the complete latest diff. Publish their full rechecks as in step 3, and have them verify each original finding against the code and tests. Fetch every PR comment and review thread, human feedback included, and account for each actionable one. Resolve a thread only after its fix is verified.
 
-The handoff must name each PR, exact reviewed head/base, complete report links, missing approval or merge permission, dependency constraints, auto-merge state, and the next authorized action. Report partial completion explicitly and save the resume location. A saved skill/checkpoint does not keep running after the session ends. Watch actively only while the runtime supports it; create a scheduled or persistent watcher only with user authorization and supported tools. Otherwise say to invoke this skill again after external review or manual merge. Do not promise background monitoring.
+Repeat fix and recheck while each round makes measurable progress. Block the task, recording the exact decision needed, when a finding recurs without new evidence, reviewers disagree on a required change, a fix would expand scope, or a runtime or cost limit is reached.
 
-## Merge and finish
+Done when the latest recheck on the current head and base is clean, or every finding has a verified disposition.
 
-Before each merge, read live PR state, current head and base, published report coverage, finding dispositions, required CI and protection/approval requirements. Merge only when the independently checked head/base still match and all acceptance criteria and required feedback are satisfied. Use a merge operation conditional on the expected head where supported; if not, recheck immediately and verify the resulting merge. Never force, bypass required CI, or infer success from an API timeout.
+### 5. Merge
 
-Merge in dependency order. Each upstream merge or other base change invalidates downstream integration evidence: update its base/branch as appropriate, check the complete resulting diff, rerun relevant tests and obtain fresh complete independent rechecks on the new head/base before merging. Do not reuse a green review of an earlier head or base.
+Merge in dependency order, following [merge-gates.md](merge-gates.md). A new commit or a changed base makes a PR's reviews stale: rerun its checks and step 4's recheck on the new head and base before merging it.
 
-When all agreed tasks are confirmed merged, safely update the recorded local target checkout from the remote using a fast-forward-only pull. First inspect branch, dirty/untracked state and divergence again. Compare incoming changed paths with local edits and untracked paths, including directory conflicts, before attempting the pull. If they overlap, leave the checkout unchanged and report the conflicting paths. Do not switch a user's branch or overwrite edits. If a safe update cannot be established, leave it intact and report local update blocked; a separate clean verification checkout does not count as updating the requested checkout. Run the repository's documented rebuild commands on the updated target and verify success. Missing commands or build failures remain explicit blockers.
+Done when every PR is merged or waiting on a recorded external gate.
 
-Report done only with evidence that all scope is merged and the intended local checkout is updated and rebuilt. Otherwise report partial completion, remaining task IDs, exact blocked actions and how to resume. Keep checkpoints and needed worktrees until their contents are safely preserved; clean up only disposable worktrees owned by this run.
+### 6. Bring it home
+
+Once every task is confirmed merged, update the recorded target checkout with a fast-forward-only pull. First check its branch, dirty and untracked state, and divergence again, and compare the incoming paths with local edits and untracked paths, directory conflicts included. On any overlap, leave the checkout as it is and report the conflicting paths. The update happens in the user's checkout on the user's branch; a separate clean checkout does not count. Then run the documented rebuild there.
+
+Done when the checkout is at the merged head and the rebuild succeeded, or the blocker is recorded.
+
+## Report
+
+Report **done** only with evidence that all scope is merged and the target checkout is updated and rebuilt. Otherwise report partial completion: each PR with its reviewed head and base, report links, missing approval or merge permission, dependency constraints, auto-merge state, the next authorized action, and where the checkpoint is. The run ends with the session, so tell the user to invoke `/take-it-home` again after an external review or manual merge.
+
+Keep the checkpoint and any worktree holding unpreserved work. Remove only disposable worktrees this run created.
