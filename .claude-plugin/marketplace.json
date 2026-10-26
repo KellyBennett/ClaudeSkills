@@ -27,6 +27,12 @@
       "source": "./plugins/squint-review",
       "description": "Squint-test a PR or branch and review it for smells and the pattern refactorings that would cure them, with an opt-in mode that carries them out.",
       "category": "development"
+    },
+    {
+      "name": "take-it-home",
+      "source": "./plugins/take-it-home",
+      "description": "Carry defined work through implementation, independent reviews, fixes, merges, and a local rebuild.",
+      "category": "development"
     }
   ]
 }

@@ -1,0 +1,15 @@
+{
+  "name": "take-it-home",
+  "version": "0.1.0",
+  "description": "Carry defined work through implementation, independent reviews, fixes, merges, and a local rebuild.",
+  "author": {
+    "name": "Kelly Bennett"
+  },
+  "skills": [
+    "./skills/"
+  ],
+  "dependencies": [
+    "squint-review",
+    "magic-tricks"
+  ]
+}
