@@ -1,0 +1,54 @@
+---
+name: take-it-home
+description: Carry an already-defined, bounded work set through parallel implementation, independent Squint and test reviews, fixes, dependency-ordered PR merges, and a safe local update and rebuild. Use when the user asks to take defined work through completion.
+---
+
+# Take it home
+
+Carry an already-defined, bounded work set through implementation, published pull requests, independent reviews, fixes, dependency-safe merges, and a safe local update and rebuild. This is not a task-discovery or global auto-merge policy.
+
+## Establish the run
+
+Read [platform guidance](references/platforms.md) for Codex or Claude Code discovery, delegation, and worktree handling.
+
+Invoking this workflow requests these actions for the agreed work set, including posting both full review reports and addressing their findings. Carry the user's actual authorization into delegated tasks, including their choice of full reports. Honor confirmation requirements in the loaded skills and runtime. If approval of the concrete comment text is still required, prepare both full reports and ask for that approval before posting; do not treat this skill as a permission bypass. Skill text alone grants no authority outside an invocation. Obey runtime permissions, repository rules, required checks and explicit user limits. Do not repeatedly ask for permission already given; a real unmet permission or scope decision is a blocker.
+
+Read repository instructions, including applicable AGENTS.md and .agents/skills, and documented validation and rebuild commands. Discover and read the actual squint-review and audit-tests skills and their referenced resources in the current environment. If either is unavailable, record the missing skill and block review and merge. Continue safe planning or implementation already authorized by the user, but never substitute a generic review or claim the run complete. Resolve the repository, target branch and local checkout. Record its branch, head and existing modifications without changing them.
+
+Inspect existing branches, PRs and prior checkpoints before creating anything. Establish acceptance criteria and a dependency graph for the bounded tasks. Assign file or component ownership; serialize overlapping ownership or dependent work. Independent tasks may run concurrently in isolated worktrees. Prefer starting dependent tasks from the merged prerequisite; use stacked branches only with an explicit base relationship and a plan to rebase or retarget and revalidate. Respect user-selected models and runtime limits; do not install an agent harness or force concurrency.
+
+## Keep a resumable checkpoint
+
+Keep a small durable run note in an allowed task location, outside unrelated product changes. Record scope and acceptance criteria, dependency edges, target checkout and original state, task branch/worktree/PR URLs, actual agent identities and roles, current head and base SHAs, test commands/results, complete report links and reviewed SHAs, finding dispositions and fix commits, merge evidence, local update/build evidence, and the next action or exact blocker. Update after each externally visible transition.
+
+Use states such as planned, implementing, published, reviewing, fixing, rechecking, merge-ready, merged, blocked, and done. On resume reconcile the note against live Git and GitHub state. An uncertain push, review publication or merge requires read-back before retrying; reuse existing PRs and reports rather than duplicate them. Merged tasks stay merged; incomplete local rebuild is not overall completion.
+
+## Implement and publish
+
+Dispatch implementation agents with bounded acceptance criteria, dependencies, owned paths, isolated worktrees and relevant instructions. Have them implement and run repository-appropriate checks, recording results and gaps. Never reset, stash, discard or overwrite unrelated user changes without permission. Preserve commits and resumable worktrees on failure.
+
+Publish completed implementation commits to a PR with its correct base and validation evidence. Do not fold review fixes into the initial implementation or rewrite history to hide them. A failing required test blocks merging; investigate and fix within scope, and continue other independent safe work. Do not invent successful CI results or bypass protections.
+
+## Review, fix and recheck
+
+A fresh reviewer means a new agent context for each pass, not a resumed earlier review session. Pass the scope, revisions and finding ledger as evidence without carrying over an author's or prior reviewer's reasoning. Record identities so independence can be checked. If separate contexts are unavailable, block that review rather than claim independence.
+
+For each published PR, capture the exact head and base. Start two fresh, distinct reviewers in parallel when capacity permits, otherwise sequentially with the same separation. Neither may be its implementer or fixer. One reads and applies squint-review; the other reads and applies audit-tests. Supply the full diff and revision access, scope and invocation authorization. Reviewers are read-only and follow the actual skills, including their source-inspection and .env exclusions. The orchestrator prepares revision access; reviewers do not create worktrees or run tests in conflict with their skills.
+
+Publish both complete reports as COMMENT reviews pinned to the reviewed head, or PR comments clearly naming head and base when review submission is unavailable. Include clean results, set-asides and gaps, not only actionable summaries. Before posting, save the full report and a publication record identifying the PR, head/base, review type, expected parts and each part's content or digest. Split long reports without losing content. Record returned IDs and verify every posted part against that record. After a timeout, read existing publications and post only parts proven missing; uncertain delivery remains blocked. Do not treat a failed or partial publication as complete; do not change a COMMENT review into approval to satisfy branch protection.
+
+Send the posted reports to a fresh fixer distinct from the implementer and both reviewers. Evaluate every finding. Make substantive fixes in new commits, run relevant checks and publish the fixes and a finding-by-finding disposition with evidence. Mark optional or inapplicable findings with reasons rather than silently dropping them. A required finding needs a fix or independent evidence that it does not apply; a disputed required finding blocks merge for a decision. Resolving a thread is bookkeeping, never proof of a fix. Do not invent changes when both reports are clean.
+
+After fixes, or after clean initial reports, use fresh independent reviewers, distinct from all authors/fixers, to apply both actual skills again to the complete latest diff. Use distinct agents for the two review skills. Publish full rechecks with their head and base and independently verify each original finding against code and tests. Fetch all PR comments and review threads, including human feedback; account for every actionable comment, and resolve threads only after its substantive disposition is verified and permissions allow it.
+
+Repeat needed fixes and fresh rechecks while measurable progress remains within scope. Do not stop solely because a fixed number of workflow stages or one fix round elapsed. Stop the affected task as blocked if a finding recurs without new evidence, reviewers disagree on a required change, scope would expand, or a runtime/cost limit is reached. Record the exact remaining decision or prerequisite; continue independent work. Never loop indefinitely or silently waive a required issue.
+
+## Merge and finish
+
+Before each merge, read live PR state, current head and base, published report coverage, finding dispositions, required CI and protection/approval requirements. Merge only when the independently checked head/base still match and all acceptance criteria and required feedback are satisfied. Use a merge operation conditional on the expected head where supported; if not, recheck immediately and verify the resulting merge. Never force, bypass required CI, or infer success from an API timeout.
+
+Merge in dependency order. Each upstream merge or other base change invalidates downstream integration evidence: update its base/branch as appropriate, check the complete resulting diff, rerun relevant tests and obtain fresh complete independent rechecks on the new head/base before merging. Do not reuse a green review of an earlier head or base.
+
+When all agreed tasks are confirmed merged, safely update the recorded local target checkout from the remote using a fast-forward-only pull. First inspect branch, dirty/untracked state and divergence again. Compare incoming changed paths with local edits and untracked paths, including directory conflicts, before attempting the pull. If they overlap, leave the checkout unchanged and report the conflicting paths. Do not switch a user's branch or overwrite edits. If a safe update cannot be established, leave it intact and report local update blocked; a separate clean verification checkout does not count as updating the requested checkout. Run the repository's documented rebuild commands on the updated target and verify success. Missing commands or build failures remain explicit blockers.
+
+Report done only with evidence that all scope is merged and the intended local checkout is updated and rebuilt. Otherwise report partial completion, remaining task IDs, exact blocked actions and how to resume. Keep checkpoints and needed worktrees until their contents are safely preserved; clean up only disposable worktrees owned by this run.
