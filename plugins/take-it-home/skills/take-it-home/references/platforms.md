@@ -25,3 +25,11 @@ See [Claude skills and plugin invocation](https://code.claude.com/docs/en/skills
 ## Capability limits
 
 A valid package proves neither agent independence nor external permissions. If the runtime cannot provide fresh agents, revision access, publication, or required checks, record the exact unavailable capability and block the dependent action. Continue independent authorized work. Test package discovery separately from model execution; never describe local fixtures or simulated PR events as a completed run in both products.
+
+## External GitHub gates in either runtime
+
+Use the connected GitHub tools or authenticated `gh` to inspect the target rules and the current account's permissions. Agent identity is separate from GitHub account identity. `gh pr view <pr> --json headRefOid,baseRefOid,reviewDecision,reviews,reviewRequests,autoMergeRequest,mergeStateStatus,statusCheckRollup` supplies useful PR evidence, but does not alone prove complete rules or permission coverage. Read applicable rulesets, branch protection and queue requirements through the available API; report restricted visibility.
+
+When the shared workflow's prerequisites hold, use the repository's allowed merge method and existing auto-merge/queue mechanism. With `gh`, `--auto` waits for repository requirements and `--match-head-commit <sha>` checks the head at the request; the latter does not pin all future automated merges. Never use `--admin` or switch accounts. Read back the request and its outcome. For a queued PR, verify actual queue membership and removal; a null `autoMergeRequest` does not prove it has left the queue. If no permitted mechanism is available, return the approval/merge handoff and checkpoint, rather than installing a bot or enabling repository features.
+
+See [GitHub auto-merge permissions and behavior](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/automatically-merging-a-pull-request) and [protected branches and stale reviews](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches).
