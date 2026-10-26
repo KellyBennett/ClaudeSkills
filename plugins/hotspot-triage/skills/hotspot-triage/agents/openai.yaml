@@ -1,0 +1,3 @@
+interface:
+  display_name: "Hotspot triage"
+  short_description: "Prioritize code maintenance with measured evidence"
