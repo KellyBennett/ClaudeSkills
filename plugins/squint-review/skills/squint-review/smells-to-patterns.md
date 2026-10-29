@@ -17,6 +17,6 @@ The refactorings Refactoring to Patterns offers for each smell. Pick the one tha
 | Combinatorial Explosion | Replace Implicit Language with Interpreter |
 | Oddball Solution | Unify Interfaces with Adapter |
 
-A smell outside this table, such as Feature Envy, Message Chains, or Shotgun Surgery, takes its cure from Fowler's Refactoring: Move Function, Hide Delegate, Combine Functions into Class.
+A smell outside this table takes its cure from Fowler's Refactoring: Feature Envy and Shotgun Surgery take Move Function or Combine Functions into Class; Divergent Change takes Split Phase, Extract Class, or Move Function; Message Chains take Hide Delegate; Flag Argument takes Remove Flag Argument.
 
 Smells in test code often take their cure from Meszaros's xUnit Test Patterns: duplicated setup becomes a shared fixture (Creation Method, Transaction Rollback Teardown).
