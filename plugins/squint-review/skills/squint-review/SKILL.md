@@ -36,30 +36,51 @@ Done when you have the diff and the full head-revision text of every file in sco
 Look at the code as a shape, not as text, at two distances.
 
 - **Each file**: changes in shape (indentation drifting right, nesting, long methods) are where the conditionals live. Changes in color (runs of different syntax clustered together) mark mixed levels of abstraction.
-- **The whole diff**: the same shape repeating across files is Duplicated Code, and the same edit repeated across hunks is Shotgun Surgery. The fact that this PR had to change many places for one reason is the smell.
+- **The whole diff**: the same shape repeating across files is Duplicated Code.
 
 Then read closely where the squint pointed, and ask the five questions of each unit. Record every smell by its standard name, with `path:line` and what it costs in concrete terms: the next change it makes harder.
 
 Done when every file in scope and the diff as a whole have been squinted at, and every unit has answers to the five questions.
 
-### 3. Recommend
+### 3. Weigh the change against its reason
+
+Make the change easy, then make the easy change. This step finds where the code made the change hard.
+
+State the branch's **reason** in one sentence, taken from the PR title, description, and commits. Then sort every changed file by that sentence:
+
+- **Expected**: a reader given only the sentence would predict this file.
+- **Incidental**: a self-contained edit riding along (a typo, an unrelated fix, a rename). Acceptable; mention it only when it hides the real change.
+- **Dragged in**: the reason forced an edit here, but the file's own responsibility has nothing to do with it. Adding a column to the users table and having to edit `auth.go` is the shape. The file has more than one reason to change: Divergent Change.
+
+Then look for **friction**, the marks of a change that was hard to land:
+
+- Many files edited for the one reason: Shotgun Surgery.
+- A new arm added to an existing `switch`, `match`, or `if` chain on a kind or type: Switch Statements. The next kind pays the same edit.
+- The same new case added in several parallel places (a registration list, a dispatch, a lookup table): Shotgun Surgery.
+- A value passed through layers that only hand it along, or a new flag parameter that forks existing behavior: Shotgun Surgery or Flag Argument.
+
+For each dragged-in file and each friction mark, name the **preparatory refactoring**: the one that, done first, would have made this change a one-place edit. Its cost is the toll every future change of the same kind will pay.
+
+Done when every changed file is sorted as expected, incidental, or dragged in, and every dragged-in file and friction mark is recorded as a smell.
+
+### 4. Recommend
 
 Turn the smells into an ordered list of recommended refactorings, choosing each from [smells-to-patterns.md](smells-to-patterns.md).
 
-- Small cleanups that make a pattern visible (Compose Method, Extract Method) come before the pattern refactorings. Within each group, highest cost first.
+- Preparatory refactorings from step 3 come first, marked as preparatory, since each could land as its own commit before the change. Then small cleanups that make a pattern visible (Compose Method, Extract Method), then the pattern refactorings. Within each group, highest cost first.
 - Name each refactoring's prerequisites among the earlier ones.
 - Say for each whether it goes **to** the pattern, **toward** it, or **away** from it. Toward a pattern stops once the smell's cost is gone. Away from one is for a pattern the code does not earn (Speculative Generality).
 - List the smells not worth acting on in this PR, each with the reason.
 
 Done when every recorded smell is either a recommendation or listed with its reason.
 
-### 4. Present
+### 5. Present
 
 Load the `over-coffee:present-findings` skill and hand it the recommendations as findings, with smell, location, cost, refactoring, direction, and prerequisites as the fields of the full report. The smells not worth acting on are its set-asides, and the one line on CI comes with them. When the user asked to refactor from the start, tell it the user is fixing rather than reviewing.
 
 Done when it hands back the chosen recommendations.
 
-### 5. Deliver
+### 6. Deliver
 
 Offer the next moves the target allows in one `AskUserQuestion` dialog, with **Done** as the last option:
 
