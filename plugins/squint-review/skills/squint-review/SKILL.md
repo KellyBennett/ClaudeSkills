@@ -52,12 +52,13 @@ State the branch's **reason** in one sentence, taken from the PR title, descript
 - **Incidental**: a self-contained edit riding along (a typo, an unrelated fix, a rename). Acceptable; mention it only when it hides the real change.
 - **Dragged in**: the reason forced an edit here, but the file's own responsibility has nothing to do with it. Adding a column to the users table and having to edit `auth.go` is the shape. The file has more than one reason to change: Divergent Change.
 
-Then look for **friction**, the marks of a change that was hard to land:
+Expected is not free: look for **friction** in every changed file, whatever its sort. Friction is the marks of a change that was hard to land:
 
 - Many files edited for the one reason: Shotgun Surgery.
 - A new arm added to an existing `switch`, `match`, or `if` chain on a kind or type: Switch Statements. The next kind pays the same edit.
 - The same new case added in several parallel places (a registration list, a dispatch, a lookup table): Shotgun Surgery.
 - A value passed through layers that only hand it along, or a new flag parameter that forks existing behavior: Shotgun Surgery or Flag Argument.
+- A handwritten copy of something the code already lists (a doc sentence naming every resource, a README table of every command): Duplicated Code that goes stale silently.
 
 For each dragged-in file and each friction mark, name the **preparatory refactoring**: the one that, done first, would have made this change a one-place edit. Its cost is the toll every future change of the same kind will pay.
 
