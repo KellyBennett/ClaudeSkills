@@ -1,0 +1,63 @@
+#!/bin/sh
+# Every failure exits 0 with no output, so a missing or broken checker lets the
+# command through rather than blocking it.
+
+repo=KellyBennett/ClaudeSkills
+root=${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}
+version=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$root/.claude-plugin/plugin.json" | head -n 1)
+[ -n "$version" ] || exit 0
+
+case $(uname -s) in
+  Darwin) os=darwin ;;
+  Linux) os=linux ;;
+  MINGW* | MSYS* | CYGWIN*) os=windows ;;
+  *) exit 0 ;;
+esac
+case $(uname -m) in
+  x86_64 | amd64) arch=amd64 ;;
+  arm64 | aarch64) arch=arm64 ;;
+  *) exit 0 ;;
+esac
+asset=bury-the-lede-$os-$arch
+[ "$os" = windows ] && asset=$asset.exe
+
+cache=${CLAUDE_PLUGIN_DATA:-${XDG_CACHE_HOME:-$HOME/.cache}/bury-the-lede}/$version
+bin=$cache/$asset
+
+download() {
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL --max-time 30 "$1"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -T 30 -O - "$1"
+  else
+    return 1
+  fi
+}
+
+sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | cut -d ' ' -f 1
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | cut -d ' ' -f 1
+  else
+    return 1
+  fi
+}
+
+# The checksum comes from the same release, so it proves the download is
+# whole, not who published it: anyone who can replace the release can also
+# replace this script.
+fetch() {
+  base=https://github.com/$repo/releases/download/bury-the-lede-v$version
+  mkdir -p "$cache" || return 1
+  tmp=$(mktemp "$cache/.download.XXXXXX") || return 1
+  expected=$(download "$base/SHA256SUMS" | awk -v a="$asset" '$2 == a { print $1 }')
+  if [ -n "$expected" ] && download "$base/$asset" >"$tmp" && [ "$(sha256 "$tmp")" = "$expected" ]; then
+    chmod +x "$tmp" && mv -f "$tmp" "$bin" && return 0
+  fi
+  rm -f "$tmp"
+  return 1
+}
+
+[ -x "$bin" ] || fetch </dev/null >/dev/null 2>&1 || exit 0
+exec "$bin"

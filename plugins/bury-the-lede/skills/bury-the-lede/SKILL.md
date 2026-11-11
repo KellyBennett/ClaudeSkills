@@ -11,6 +11,10 @@ A PR description has three sections, in this order: `## What`, `## Why`, `## How
 - **Why** — the problem or goal that makes the change worth merging. The ticket link goes here.
 - **How** — the approach, then the specifics: identifiers, files, routes, migrations, trade-offs.
 
+When the repository has a pull request template, its sections replace these three. Start from the template's text, keep every section it doesn't mark as optional, and write N/A under one that doesn't apply. Framing still applies to each section the author writes in prose.
+
+When editing an existing description, keep the sections it already has.
+
 ## Framing
 
 Every section opens with framing: one or two plain sentences saying what the reader is about to look at and why it matters. Code identifiers, file paths, and other specifics follow the framing. A section's first words are prose; a backticked name or a path appears only after them.
