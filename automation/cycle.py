@@ -213,7 +213,7 @@ The implementer has already pushed this head and opened the PR. Do not edit file
 Run BOTH actual skills by reading these files and their referenced supporting files:
 {root}/plugins/squint-review/skills/squint-review/SKILL.md
 {root}/plugins/magic-tricks/skills/audit-tests/SKILL.md
-Presentation skill: {root}/plugins/over-coffee/skills/present-findings/SKILL.md
+Presentation skill: {root}/plugins/coffee-talk/skills/present-findings/SKILL.md
 Read every changed file at HEAD and inspect the complete diff, excluding .env content.
 Include all five Squint questions per unit; named smells, locations, costs, refactorings,
 directions, prerequisites, set-asides, and CI context. For each changed test case include

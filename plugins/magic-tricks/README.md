@@ -14,4 +14,4 @@ Audits the tests added or changed in a PR or branch against Sandi Metz's [Magic 
 /audit-tests
 ```
 
-With no argument it audits the current branch. You choose the findings all at once or one at a time over coffee, and for a PR, Claude offers to post the ones you keep as review comments after you approve the text. Installing magic-tricks installs [over-coffee](../over-coffee/README.md) for this.
+With no argument it audits the current branch. You choose the findings all at once or one at a time over coffee, and for a PR, Claude offers to post the ones you keep as review comments after you approve the text. Installing magic-tricks installs [coffee-talk](../coffee-talk/README.md) for this.

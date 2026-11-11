@@ -6,7 +6,7 @@ A Claude Code plugin marketplace. Add it once and the plugins below become insta
 
 ```
 /plugin marketplace add KellyBennett/ClaudeSkills
-/plugin install over-coffee@kbennett-skills
+/plugin install coffee-talk@kbennett-skills
 /plugin install magic-tricks@kbennett-skills
 /plugin install squint-review@kbennett-skills
 /plugin install readme-writer@kbennett-skills
@@ -31,11 +31,11 @@ Writes READMEs for people with little time. Explains the value, installation, an
 
 Run it with `/readme-writer`, or ask it to write, rewrite, or review a README. Details in the [plugin README](plugins/readme-writer/README.md).
 
-### over-coffee
+### coffee-talk
 
 Claude drops the essay and talks like a co-worker across a table. For when you need to understand something rather than receive it.
 
-Start one with `/coffee`. Anything you send marked `ooc:` is real instruction rather than conversation — context, steering, or `ooc: go implement that` to close the scene. Details in the [plugin README](plugins/over-coffee/README.md).
+Start one with `/coffee`. Anything you send marked `ooc:` is real instruction rather than conversation — context, steering, or `ooc: go implement that` to close the scene. Details in the [plugin README](plugins/coffee-talk/README.md).
 
 ### magic-tricks
 

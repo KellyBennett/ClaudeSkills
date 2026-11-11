@@ -77,7 +77,7 @@ Done when every recorded smell is either a recommendation or listed with its rea
 
 ### 5. Present
 
-Load the `over-coffee:present-findings` skill and hand it the recommendations as findings, with smell, location, cost, refactoring, direction, and prerequisites as the fields of the full report. The smells not worth acting on are its set-asides, and the one line on CI comes with them. When the user asked to refactor from the start, tell it the user is fixing rather than reviewing.
+Load the `coffee-talk:present-findings` skill and hand it the recommendations as findings, with smell, location, cost, refactoring, direction, and prerequisites as the fields of the full report. The smells not worth acting on are its set-asides, and the one line on CI comes with them. When the user asked to refactor from the start, tell it the user is fixing rather than reviewing.
 
 Done when it hands back the chosen recommendations.
 
