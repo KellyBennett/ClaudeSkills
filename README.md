@@ -11,6 +11,7 @@ A Claude Code plugin marketplace. Add it once and the plugins below become insta
 /plugin install squint-review@kbennett-skills
 /plugin install readme-writer@kbennett-skills
 /plugin install take-it-home@kbennett-skills
+/plugin install bury-the-lede@kbennett-skills
 ```
 
 Every `/plugin` command also runs from a shell as `claude plugin`. `claude plugin list` should then show each installed plugin as enabled.
@@ -53,3 +54,9 @@ Run it with `/squint-review <pr-or-branch>`. Details in the [plugin README](plug
 Carries an agreed set of tasks all the way: an agent and a PR per task, two fresh reviewers per PR running squint-review and audit-tests, fixes and rechecks until clean, merges in dependency order, then a rebuild of your local checkout. Installing it installs squint-review and magic-tricks.
 
 Run it with `/take-it-home <tasks>`. Details in the [plugin README](plugins/take-it-home/README.md).
+
+### bury-the-lede
+
+PR descriptions in three sections — What, Why, How — each opening with a plain sentence before any file paths or identifiers, so reviewers know what they're looking at before the details arrive.
+
+Claude uses it whenever it opens a PR or writes a description, or run it with `/bury-the-lede`. Details in the [plugin README](plugins/bury-the-lede/README.md).

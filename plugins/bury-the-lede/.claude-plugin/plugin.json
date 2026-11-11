@@ -1,0 +1,11 @@
+{
+  "name": "bury-the-lede",
+  "version": "0.1.0",
+  "description": "Write PR descriptions as What / Why / How, each section framed in plain words before any code.",
+  "author": {
+    "name": "Kelly Bennett"
+  },
+  "skills": [
+    "./skills/"
+  ]
+}

@@ -39,6 +39,12 @@
       "source": "./plugins/hotspot-triage",
       "description": "Prioritize maintenance hotspots using churn, complexity, and test coverage.",
       "category": "development"
+    },
+    {
+      "name": "bury-the-lede",
+      "source": "./plugins/bury-the-lede",
+      "description": "Write PR descriptions as What / Why / How, each section framed in plain words before any code.",
+      "category": "development"
     }
   ]
 }
