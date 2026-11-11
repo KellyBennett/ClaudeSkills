@@ -1,0 +1,36 @@
+name: bury-the-lede hook release
+on:
+  push:
+    tags: ['bury-the-lede-v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/bury-the-lede/hook
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version-file: plugins/bury-the-lede/hook/go.mod
+      - name: Tag matches plugin version
+        run: test "$GITHUB_REF_NAME" = "bury-the-lede-v$(jq -r .version ../.claude-plugin/plugin.json)"
+      - run: go test ./...
+      - name: Build
+        run: |
+          mkdir dist
+          for target in darwin/amd64 darwin/arm64 linux/amd64 linux/arm64 windows/amd64 windows/arm64; do
+            os=${target%/*} arch=${target#*/}
+            out=dist/bury-the-lede-$os-$arch
+            [ "$os" = windows ] && out=$out.exe
+            CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -trimpath -ldflags='-s -w' -o "$out" .
+          done
+          cd dist && sha256sum * > SHA256SUMS
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --notes "Hook binaries for the bury-the-lede plugin."
