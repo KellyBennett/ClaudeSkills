@@ -1,4 +1,4 @@
-# Over coffee
+# Coffee talk
 
 Claude drops the essay and talks like a co-worker across a table — a few sentences per turn, plain English, no code, then it hands the conversation back to you. For when you need to understand something rather than receive it.
 

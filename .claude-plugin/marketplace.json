@@ -11,8 +11,8 @@
       "category": "productivity"
     },
     {
-      "name": "over-coffee",
-      "source": "./plugins/over-coffee",
+      "name": "coffee-talk",
+      "source": "./plugins/coffee-talk",
       "description": "Talk through code or a decision the way two co-workers talk over coffee — short spoken turns, plain English, no code on the table.",
       "category": "productivity"
     },

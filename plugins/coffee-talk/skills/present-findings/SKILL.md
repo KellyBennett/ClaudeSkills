@@ -17,7 +17,7 @@ Each finding with the fields the review skill lists for its report. Then the set
 
 ## One at a time
 
-Load the `over-coffee:coffee` skill. Each finding opens with a header, stepped out of the conversation because a location has to be exact: each location with, for a PR, a link beside it. The user looks at the code there while you talk. Written as a bullet per location, like these:
+Load the `coffee-talk:coffee` skill. Each finding opens with a header, stepped out of the conversation because a location has to be exact: each location with, for a PR, a link beside it. The user looks at the code there while you talk. Written as a bullet per location, like these:
 
 - api/internal/events/reads.go:46-51 · [See in diff](<pr-url>/files#diff-<anchor>R46-R51)
 - api/internal/events/handler.go:169-176 · [See in file](<repo-url>/blob/<head-commit>/api/internal/events/handler.go#L169-L176)

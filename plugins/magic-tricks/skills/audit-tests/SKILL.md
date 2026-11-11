@@ -76,7 +76,7 @@ Done when every in-scope test case has a verdict: clean, violations listed, or o
 
 Turn the violations into findings, in the order you would fix them, highest cost first. Violations with the same cause and the same fix are one finding that names every test it covers. Each finding's full-report fields are the tests with `path:line`, the message, its cell, what the tests do, and the fix, stated as the assertion or stub to use instead.
 
-Load the `over-coffee:present-findings` skill and hand it the findings. The set-asides are the clean tests by name, the out-of-scope tests, and anything worth knowing that sits outside the grid, with one line of totals.
+Load the `coffee-talk:present-findings` skill and hand it the findings. The set-asides are the clean tests by name, the out-of-scope tests, and anything worth knowing that sits outside the grid, with one line of totals.
 
 Done when it hands back the chosen findings.
 

@@ -1,6 +1,6 @@
 {
   "name": "magic-tricks",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Audit the tests in a PR or branch against Sandi Metz's Magic Tricks of Testing grid.",
   "author": {
     "name": "Kelly Bennett"
@@ -9,6 +9,6 @@
     "./skills/"
   ],
   "dependencies": [
-    "over-coffee"
+    "coffee-talk"
   ]
 }
