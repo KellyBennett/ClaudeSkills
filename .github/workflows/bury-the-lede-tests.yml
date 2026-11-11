@@ -1,0 +1,24 @@
+name: bury-the-lede hook tests
+on:
+  pull_request:
+    paths: ['plugins/bury-the-lede/hook/**', '.github/workflows/bury-the-lede-*.yml']
+  push:
+    branches: [main]
+    paths: ['plugins/bury-the-lede/hook/**', '.github/workflows/bury-the-lede-*.yml']
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/bury-the-lede/hook
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version-file: plugins/bury-the-lede/hook/go.mod
+      - run: go vet ./...
+      - run: go test ./...

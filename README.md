@@ -59,4 +59,4 @@ Run it with `/take-it-home <tasks>`. Details in the [plugin README](plugins/take
 
 PR descriptions in three sections — What, Why, How — each opening with a plain sentence before any file paths or identifiers, so reviewers know what they're looking at before the details arrive.
 
-Claude uses it whenever it opens a PR or writes a description, or run it with `/bury-the-lede`. Details in the [plugin README](plugins/bury-the-lede/README.md).
+Claude uses it whenever it opens a PR or writes a description, or run it with `/bury-the-lede`. A hook blocks `gh pr create` and `gh pr edit` when the description doesn't follow it. Details in the [plugin README](plugins/bury-the-lede/README.md).
